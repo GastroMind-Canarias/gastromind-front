@@ -1,0 +1,38 @@
+<!--
+  @if + animaciones CSS (enter/leave) — sin dependencia de @angular/animations.
+  Rol ARIA dialog + aria-modal para accesibilidad.
+-->
+@if (config(); as cfg) {
+  <div class="modal-root" role="presentation">
+    <div class="modal__overlay" (click)="onOverlayClick()"></div>
+
+    <div [ngClass]="cardClass()"
+         role="dialog"
+         aria-modal="true"
+         [attr.aria-label]="cfg.title">
+      <!-- Icono decorativo (check) — opcional, mimetiza el diseño del mockup -->
+      <div class="modal__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+
+      @if (cfg.title) { <h2 class="modal__title">{{ cfg.title }}</h2> }
+      @if (cfg.subtitle) { <p class="modal__subtitle">{{ cfg.subtitle }}</p> }
+
+      <div class="modal__body">
+        <!-- Componente proyectado dinámicamente -->
+        @if (cfg.component) {
+          <ng-container *ngComponentOutlet="cfg.component; inputs: { data: cfg.data }" />
+        }
+        <!-- ...o contenido estático por <ng-content> cuando se usa directo -->
+        <ng-content />
+      </div>
+
+      <div class="modal__actions">
+        <button class="btn btn--ghost"   (click)="close()">Cerrar</button>
+        <button class="btn btn--primary" (click)="close(true)">Confirmar</button>
+      </div>
+    </div>
+  </div>
+}

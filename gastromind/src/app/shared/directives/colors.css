@@ -1,0 +1,23 @@
+/* PALETA DE COLORES "FOODIE ADMIN" */
+:root {
+    /* --- Colores Primarios (Basados en tu UI) --- */
+    --primary-green: #4ade80; /* Verde vibrante de los botones y activos */
+    --primary-green-dark: #2d6a4f; /* Verde oscuro de los fondos de encabezado */
+    --primary-green-soft: #e8f5e9; /* Fondo sutil para tarjetas o fondos de página */
+
+    /* --- Colores de Acento y Estado --- */
+    --accent-orange: #ff9f1c; /* Color para el badge de "novedad" o avisos */
+    --error-red: #ef4444; /* Para el botón "Salir" o alertas de alérgenos */
+    --safe-blue: #3b82f6; /* Para estados informativos o seguros */
+
+    /* --- Escala de Grises y Fondos --- */
+    --bg-main: #f0f4f1; /* El color de fondo ligeramente verdoso/gris de la app */
+    --bg-card: #ffffff; /* Blanco puro para las tarjetas (Cards) */
+    --text-main: #1a1c1a; /* Casi negro para títulos */
+    --text-muted: #6b7280; /* Gris para subtítulos (ej: "2 personas en el hogar") */
+    --border-color: #e5e7eb; /* Para líneas divisorias sutiles */
+
+    /* --- Sombras (Elevación) --- */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}

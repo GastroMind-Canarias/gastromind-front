@@ -1,0 +1,96 @@
+/* ============================================================
+   DESIGN TOKENS — Fridge Admin
+   Paleta "soft" inspirada en el mockup: verde pastel dominante,
+   acentos naranjas, superficies crema y sombras muy suaves.
+   Se declaran como custom properties para que cualquier componente
+   pueda consumirlas sin acoplarse a un preprocesador.
+   ============================================================ */
+
+:root {
+  /* --- Marca / Primario (verde) --- */
+  --color-primary-50:  #E9F8EE;
+  --color-primary-100: #D1F0DC;
+  --color-primary-200: #A6E2BC;
+  --color-primary-300: #6FD095;
+  --color-primary-400: #3FBD73;
+  --color-primary-500: #22A55A;   /* principal */
+  --color-primary-600: #188547;
+  --color-primary-700: #0F5E32;
+  --color-primary-800: #0A3F22;   /* botón oscuro "Crear nuevo" */
+
+  /* --- Acento (naranja para highlights) --- */
+  --color-accent-400: #FFB547;
+  --color-accent-500: #FF9A1F;
+
+  /* --- Neutros / superficies --- */
+  --color-bg:         #F3F8F4;   /* fondo general, verde muy lavado */
+  --color-surface:    #FFFFFF;   /* tarjetas, modales */
+  --color-surface-2:  #F7F5EC;   /* blob crema decorativo */
+  --color-border:     #E3ECE5;
+
+  /* --- Texto --- */
+  --color-text:        #0E1B14;
+  --color-text-muted:  #5B6B61;
+  --color-text-soft:   #8A988F;
+  --color-text-on-primary: #FFFFFF;
+
+  /* --- Estado --- */
+  --color-danger: #E5484D;
+  --color-warn:   #F5A524;
+  --color-ok:     var(--color-primary-500);
+
+  /* --- Radios (bordes muy redondeados = soft) --- */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
+  /* --- Sombras sutiles (clave del look "soft") --- */
+  --shadow-xs: 0 1px 2px rgba(15, 94, 50, .06);
+  --shadow-sm: 0 4px 12px rgba(15, 94, 50, .06);
+  --shadow-md: 0 10px 30px rgba(15, 94, 50, .08);
+  --shadow-lg: 0 24px 60px rgba(15, 94, 50, .12);
+
+  /* --- Tipografía --- */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --fs-xs: 12px;
+  --fs-sm: 14px;
+  --fs-md: 16px;
+  --fs-lg: 18px;
+  --fs-xl: 22px;
+  --fs-2xl: 28px;
+  --fs-3xl: 34px;
+
+  /* --- Layout --- */
+  --sidebar-w: 264px;
+  --sidebar-w-collapsed: 76px;
+  --topbar-h: 72px;
+
+  /* --- Transiciones --- */
+  --ease: cubic-bezier(.22, 1, .36, 1);
+  --t-fast: 150ms var(--ease);
+  --t-med:  240ms var(--ease);
+  --t-slow: 420ms var(--ease);
+
+  /* --- Glassmorphism (para overlays de modal) --- */
+  --glass-bg: rgba(255, 255, 255, .72);
+  --glass-border: rgba(255, 255, 255, .6);
+  --overlay-bg: rgba(10, 63, 34, .28);
+  --overlay-blur: 8px;
+}
+
+/* Modo oscuro opcional, respeta los mismos tokens */
+@media (prefers-color-scheme: dark) {
+  :root.dark {
+    --color-bg:        #0D1512;
+    --color-surface:   #132019;
+    --color-surface-2: #172821;
+    --color-border:    #1F322A;
+    --color-text:      #EAF3EC;
+    --color-text-muted:#9DB0A3;
+    --color-text-soft: #718378;
+    --glass-bg:        rgba(19, 32, 25, .6);
+    --overlay-bg:      rgba(0, 0, 0, .55);
+  }
+}
