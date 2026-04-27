@@ -1,5 +1,16 @@
 import { Routes } from '@angular/router';
 
-// Stub — implementar en el sprint de la feature Households
-const routes: Routes = [{ path: '', children: [] }];
+const routes: Routes = [
+  {
+    path: '',
+    loadComponent: () =>
+      import('./households-list/households-list.component').then(m => m.HouseholdsListComponent),
+  },
+  {
+    path: ':id',
+    loadComponent: () =>
+      import('./household-detail/household-detail.component').then(m => m.HouseholdDetailComponent),
+  },
+];
+
 export default routes;

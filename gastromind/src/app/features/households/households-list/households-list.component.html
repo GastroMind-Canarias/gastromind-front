@@ -1,0 +1,120 @@
+<section class="households">
+
+  <!-- ── Cabecera ── -->
+  <header class="households__header">
+    <div>
+      <h1 class="households__title">Hogares</h1>
+      <p class="households__subtitle">
+        @if (svc.isLoading()) { Cargando… }
+        @else { {{ svc.households().length }} hogares registrados }
+      </p>
+    </div>
+  </header>
+
+  <!-- ── Error ── -->
+  @if (svc.error()) {
+    <div class="page-error" role="alert">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      {{ svc.error() }}
+      <button class="page-error__retry" (click)="svc.loadAll()">Reintentar</button>
+    </div>
+  }
+
+  <!-- ── Tabla ── -->
+  <div class="table-wrap">
+    @if (svc.isLoading()) {
+      <div class="table-skeleton">
+        @for (i of [1,2,3,4]; track i) {
+          <div class="skeleton-row">
+            <div class="skeleton-icon"></div>
+            <div class="skeleton-text"></div>
+            <div class="skeleton-text skeleton-text--sm"></div>
+            <div class="skeleton-badge"></div>
+          </div>
+        }
+      </div>
+    } @else if (svc.households().length === 0 && !svc.error()) {
+      <div class="table-empty">
+        <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-5h4v5h5V9.5"/>
+        </svg>
+        <p>No hay hogares registrados.</p>
+      </div>
+    } @else {
+      <table class="data-table" role="grid">
+        <thead>
+          <tr>
+            <th scope="col">Hogar</th>
+            <th scope="col">Miembros</th>
+            <th scope="col">Dispositivos</th>
+            <th scope="col">ID</th>
+            <th scope="col" class="col-actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (h of svc.households(); track h.id) {
+            <tr
+              class="data-table__row"
+              (click)="goToDetail(h.id)"
+              tabindex="0"
+              (keydown.enter)="goToDetail(h.id)"
+              [attr.aria-label]="'Ver detalle de ' + h.name"
+            >
+              <td>
+                <div class="household-cell">
+                  <div class="household-cell__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-5h4v5h5V9.5"/>
+                    </svg>
+                  </div>
+                  <span class="household-cell__name">{{ h.name }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="member-names">
+                  @if (h.members.length) {
+                    @for (m of h.members; track m.id) {
+                      <span class="member-chip">{{ m.name }}</span>
+                    }
+                  } @else {
+                    <span class="text-soft">Sin miembros</span>
+                  }
+                </div>
+              </td>
+              <td>
+                @if (h.appliances.length) {
+                  <div class="appliance-list">
+                    @for (a of h.appliances; track a) {
+                      <span class="appliance-tag">{{ applianceLabel(a) }}</span>
+                    }
+                  </div>
+                } @else {
+                  <span class="text-soft">—</span>
+                }
+              </td>
+              <td class="text-mono">{{ h.id.slice(0, 8) }}…</td>
+              <td class="col-actions" (click)="$event.stopPropagation()">
+                <button
+                  class="btn-icon btn-icon--danger"
+                  (click)="onDelete($event, h)"
+                  [attr.aria-label]="'Eliminar ' + h.name"
+                  title="Eliminar hogar"
+                >
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                    <path d="M10 11v6"/><path d="M14 11v6"/>
+                    <path d="M9 6V4h6v2"/>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+</section>
