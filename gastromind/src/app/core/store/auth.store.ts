@@ -17,6 +17,10 @@ export function setAuth(token: string, user: UserProfile): void {
   localStorage.setItem('authToken', token);
 }
 
+export function setCurrentUser(user: UserProfile): void {
+  _currentUser.set(user);
+}
+
 export function clearAuth(): void {
   _token.set(null);
   _currentUser.set(null);

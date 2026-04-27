@@ -1,336 +1,315 @@
-/* Flattened CSS from login.component.scss */
+/* ── Login — clases alineadas con el HTML ──────────────────────────────── */
 
+/* Wrapper de pantalla completa */
 .login-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f8faf9;
+  background-color: var(--color-bg);
   position: relative;
   overflow: hidden;
   padding: 1.5rem;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
 }
 
+/* ── Blobs de fondo ── */
 .background-blobs {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   z-index: 0;
+  pointer-events: none;
 }
-
-.background-blobs .blob {
+.blob {
   position: absolute;
   border-radius: 50%;
   filter: blur(80px);
-  opacity: 0.4;
+  opacity: 0.5;
+}
+.blob-1 {
+  width: 420px;
+  height: 420px;
+  background: var(--color-primary-100);
+  top: -120px;
+  right: -120px;
+}
+.blob-2 {
+  width: 320px;
+  height: 320px;
+  background: var(--color-surface-2);
+  bottom: -60px;
+  left: -60px;
 }
 
-.background-blobs .blob-1 {
-  width: 400px;
-  height: 400px;
-  background: var(--primary-green-soft);
-  top: -100px;
-  right: -100px;
-}
-
-.background-blobs .blob-2 {
-  width: 300px;
-  height: 300px;
-  background: #fff9e6;
-  bottom: -50px;
-  left: -50px;
-}
-
-.login-box {
-  background: white;
+/* ── Card principal ── */
+.login-card {
+  background: var(--color-surface);
   width: 100%;
-  max-width: 450px;
+  max-width: 440px;
   padding: 2.5rem;
-  border-radius: 32px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
+  border-radius: var(--radius-xl);             /* 28px */
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border);
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  animation: fadeInUp 0.5s var(--ease) backwards;
 }
 
-.login-box .back-button {
+/* ── Botón volver ── */
+.back-btn {
   position: absolute;
-  top: 2rem;
-  left: 2.5rem;
-  width: 40px;
-  height: 40px;
-  background: #f1f5f3;
-  border-radius: 12px;
+  top: 1.5rem;
+  left: 1.75rem;
+  width: 38px;
+  height: 38px;
+  background: var(--color-primary-50);
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-main);
+  color: var(--color-text-muted);
   cursor: pointer;
-  transition: all 0.2s ease;
+  border: 1px solid var(--color-border);
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.back-btn:hover {
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
 }
 
-.login-box .back-button:hover {
-  background: var(--primary-green-soft);
-}
-
-.login-box .header {
-  margin-top: 3.5rem;
-  text-align: center;
+/* ── Header / icono de marca ── */
+.login-header {
+  margin-top: 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 1rem;
+  text-align: center;
 }
 
-.login-box .header .icon-container {
+/* Contenedor del icono con badge */
+.icon-box {
   position: relative;
-  margin-bottom: 2rem;
-}
-
-.login-box .header .icon-container .icon-wrapper {
-  width: 80px;
-  height: 80px;
-  background: var(--primary-green);
-  border-radius: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transform: rotate(-10deg);
-  box-shadow: 0 10px 20px rgba(74, 222, 128, 0.3);
-}
-
-.login-box .header .icon-container .icon-wrapper .emoji {
-  font-size: 2.5rem;
-  transform: rotate(10deg);
-}
-
-.login-box .header .icon-container .sparkle {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  background: var(--accent-orange);
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  box-shadow: 0 4px 10px rgba(255, 159, 28, 0.4);
-}
-
-.login-box .header .step-indicator {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.login-box .header .step-indicator .step {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #f1f5f3;
-  color: var(--text-muted);
-  font-size: 0.75rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.login-box .header .step-indicator .step.active {
-  background: #fff;
-  border: 2px solid var(--primary-green);
-  color: var(--primary-green);
-  box-shadow: 0 0 10px rgba(74, 222, 128, 0.2);
-}
-
-.login-box .header .step-indicator .line {
-  width: 30px;
-  height: 2px;
-  background: #eef2f0;
-}
-
-.login-box .header h1 {
-  font-size: 1.85rem;
-  font-weight: 800;
-  color: var(--text-main);
   margin-bottom: 0.5rem;
+}
+
+.main-icon {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, var(--color-primary-400), var(--color-primary-600));
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-8deg);
+  box-shadow: 0 12px 24px rgba(15, 94, 50, 0.22);
+  font-size: 2.2rem;
+  line-height: 1;
+}
+.main-icon span {
+  transform: rotate(8deg);
+  display: inline-block;
+}
+
+/* Badge naranja en la esquina */
+.badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 26px;
+  height: 26px;
+  background: var(--color-accent-500);
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 10px rgba(255, 154, 31, 0.4);
+  border: 2px solid var(--color-surface);
+}
+
+/* Pills de paso */
+.step-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pill {
+  width: 24px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+  transition: background var(--t-fast), width var(--t-med);
+}
+.pill.active {
+  background: var(--color-primary-500);
+  width: 36px;
+}
+
+/* Títulos */
+.login-header h1 {
+  font-size: var(--fs-2xl);
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
   letter-spacing: -0.5px;
 }
-
-.login-box .header .title-underline {
-  width: 40px;
-  height: 4px;
-  background: var(--accent-orange);
-  border-radius: 10px;
-  margin-bottom: 1rem;
+.login-header p {
+  font-size: var(--fs-md);
+  color: var(--color-text-muted);
+  margin: 0;
 }
 
-.login-box .header p {
-  color: var(--text-muted);
-  font-size: 1.05rem;
-  font-weight: 400;
-  max-width: 250px;
-  line-height: 1.4;
-}
-
+/* ── Formulario ── */
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
-.login-form .input-section {
+.form-field {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
-.login-form .input-section label {
-  font-size: 0.7rem;
-  font-weight: 800;
-  color: var(--text-muted);
+.form-field label {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
   letter-spacing: 1px;
-  padding-left: 0.5rem;
+  text-transform: uppercase;
+  padding-left: 4px;
 }
 
-.login-form .input-section .input-wrapper {
+/* Input con icono a la derecha */
+.input-group {
   display: flex;
   align-items: center;
-  background: #f8faf9;
-  border: 2px solid transparent;
-  border-radius: 20px;
-  padding: 0.25rem 1.25rem;
-  transition: all 0.2s ease;
+  background: var(--color-bg);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 0 1rem;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast), background var(--t-fast);
 }
-
-.login-form .input-section .input-wrapper .input-icon {
-  color: var(--text-muted);
-  margin-right: 0.75rem;
+.input-group:focus-within {
+  background: var(--color-surface);
+  border-color: var(--color-primary-400);
+  box-shadow: 0 0 0 4px var(--color-primary-50);
 }
-
-.login-form .input-section .input-wrapper input {
+.input-group input {
   flex: 1;
   background: transparent;
   border: none;
-  padding: 1rem 0;
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--text-main);
   outline: none;
+  padding: 0.9rem 0;
+  font-size: var(--fs-md);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+.input-group input::placeholder {
+  color: var(--color-text-soft);
+}
+.input-group input.invalid {
+  color: var(--color-danger);
+}
+.input-group:has(input.invalid) {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 12%, transparent);
 }
 
-.login-form .input-section .input-wrapper input::placeholder {
-  color: #b0beb5;
-}
-
-.login-form .input-section .input-wrapper:focus-within {
-  background: white;
-  border-color: var(--primary-green);
-  box-shadow: 0 10px 20px rgba(74, 222, 128, 0.08);
-}
-
-.login-form .input-section .input-wrapper:focus-within .input-icon {
-  color: var(--primary-green);
-}
-
-.login-form .input-section .input-wrapper.invalid {
-  border-color: var(--error-red);
-  background: rgba(239, 68, 68, 0.02);
-}
-
-.login-form .error-alert {
+/* Iconos dentro del input */
+.icon-user,
+.icon-lock {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  background: #fff2f2;
-  border-left: 4px solid var(--error-red);
-  padding: 1rem;
-  border-radius: 16px;
-  color: #991b1b;
-  font-size: 0.9rem;
-  font-weight: 500;
-  animation: shake 0.5s ease-in-out;
+  color: var(--color-text-soft);
+  flex: none;
+  transition: color var(--t-fast);
+}
+.input-group:focus-within .icon-user,
+.input-group:focus-within .icon-lock {
+  color: var(--color-primary-500);
 }
 
-.login-form .btn-submit {
-  margin-top: 1rem;
-  background: var(--primary-green);
-  color: white;
+/* ── Mensaje de error ── */
+.error-msg {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+  border-left: 3px solid var(--color-danger);
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  color: var(--color-danger);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  animation: shake 0.45s ease-in-out;
+}
+
+/* ── Botón submit ── */
+.submit-btn {
+  margin-top: 0.5rem;
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-700));
+  color: #fff;
   border: none;
-  padding: 1.25rem;
-  border-radius: 20px;
-  font-size: 1.1rem;
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-lg);
+  font-size: var(--fs-md);
   font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 10px 20px rgba(74, 222, 128, 0.2);
+  gap: 0.6rem;
+  transition: transform var(--t-fast), box-shadow var(--t-fast), opacity var(--t-fast);
+  box-shadow: 0 8px 20px rgba(15, 94, 50, 0.25);
+  font-family: var(--font-sans);
 }
-
-.login-form .btn-submit:hover:not([disabled]) {
-  background: var(--primary-green-dark);
-  transform: translateY(-3px);
-  box-shadow: 0 15px 30px rgba(45, 106, 79, 0.25);
+.submit-btn:hover:not([disabled]) {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(15, 94, 50, 0.3);
 }
-
-.login-form .btn-submit:active:not([disabled]) {
-  transform: translateY(0);
+.submit-btn:active:not([disabled]) {
+  transform: scale(0.98);
 }
-
-.login-form .btn-submit[disabled] {
-  opacity: 0.6;
+.submit-btn[disabled] {
+  opacity: 0.55;
   cursor: not-allowed;
   box-shadow: none;
 }
-
-.login-form .btn-submit .btn-arrow {
-  transition: transform 0.3s ease;
+.submit-btn .btn-arrow {
+  transition: transform var(--t-fast);
+  flex: none;
+}
+.submit-btn:hover:not([disabled]) .btn-arrow {
+  transform: translateX(4px);
 }
 
-.login-form .btn-submit:hover .btn-arrow {
-  transform: translateX(5px);
+/* ── Spinner de carga ── */
+.loader {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
 }
 
+/* ── Animaciones ── */
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
-}
-
-.fadeInUp {
-  animation: fadeInUp 0.6s ease-out backwards;
-}
-
-.spinner-small {
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  25%       { transform: translateX(-6px); }
+  75%       { transform: translateX(6px); }
 }
 
 @keyframes spin {

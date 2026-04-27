@@ -1,0 +1,107 @@
+/* ── KpiCard — estilo "modern & soft" ────────────────────────────────────── */
+
+:host { display: contents; }
+
+.kpi-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px 28px;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);           /* 28px — look muy redondeado  */
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
+  transition: transform var(--t-fast), box-shadow var(--t-fast);
+  cursor: default;
+}
+
+.kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ── Icono ── */
+.kpi-card__icon {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  display: grid;
+  place-items: center;
+}
+.kpi-card__icon svg { width: 28px; height: 28px; }
+
+/* Variantes de color del icono */
+.kpi-card--green .kpi-card__icon {
+  background: var(--color-primary-50);
+  color: var(--color-primary-600);
+}
+.kpi-card--orange .kpi-card__icon {
+  background: color-mix(in srgb, var(--color-accent-500) 12%, transparent);
+  color: var(--color-accent-500);
+}
+.kpi-card--blue .kpi-card__icon {
+  background: color-mix(in srgb, #3B82F6 12%, transparent);
+  color: #3B82F6;
+}
+
+/* Acento izquierdo por variante */
+.kpi-card--green  { border-left: 4px solid var(--color-primary-400); }
+.kpi-card--orange { border-left: 4px solid var(--color-accent-500); }
+.kpi-card--blue   { border-left: 4px solid #3B82F6; }
+
+/* ── Cuerpo ── */
+.kpi-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.kpi-card__title {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.kpi-card__value {
+  font-size: var(--fs-2xl);   /* 28px */
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+
+.kpi-card__desc {
+  font-size: var(--fs-xs);
+  color: var(--color-text-soft);
+}
+
+/* ── Skeleton de carga ── */
+.kpi-card__skeleton {
+  width: 72px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--color-primary-50) 25%,
+    var(--color-border)     50%,
+    var(--color-primary-50) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .kpi-card { padding: 18px 20px; gap: 14px; }
+  .kpi-card__icon { width: 44px; height: 44px; }
+  .kpi-card__icon svg { width: 22px; height: 22px; }
+  .kpi-card__value { font-size: var(--fs-xl); }
+}

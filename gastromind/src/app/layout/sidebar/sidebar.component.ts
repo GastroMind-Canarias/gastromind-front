@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 
 /**
  * Definición de ítem de navegación.
@@ -21,7 +22,7 @@ interface NavItem {
   styleUrl: './sidebar.component.css',
 })
 export class SidebarComponent {
-  private router = inject(Router);
+  private authService = inject(AuthService);
 
   /**
    * Signals (Angular 17/18): estado reactivo sin RxJS para UI local.
@@ -50,12 +51,7 @@ export class SidebarComponent {
   closeMobile()    { this.mobileOpen.set(false); }
   openMobile()     { this.mobileOpen.set(true); }
 
-  /**
-   * Logout: en una app real delegaría en `AuthService.logout()`.
-   * Aquí dejamos la ruta que sería el comportamiento esperado.
-   */
-  logout() {
-    // this.auth.logout();
-    this.router.navigateByUrl('/login');
+  logout(): void {
+    this.authService.logout();
   }
 }

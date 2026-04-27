@@ -19,29 +19,42 @@ Mantener actualizado en cada PR que toque estructura o diseño.
 ```
 src/app/
 ├── core/                  # Singleton global: servicios, guards, interceptores, modelos
-│   ├── services/          # AuthService, ApiService, etc.
-│   ├── guards/            # authGuard, roleGuard
-│   ├── interceptors/      # authInterceptor, errorInterceptor
-│   └── models/            # User, Household, Fridge, Ticket (tipos compartidos)
+│   ├── services/
+│   │   └── auth.service.ts        # login(), loadCurrentUser(), logout()
+│   ├── guards/
+│   │   └── auth.guard.ts          # canActivate: protege la zona privada
+│   ├── interceptors/
+│   │   └── auth.interceptor.ts    # ★ JWT via QueryString (?JWT=<token>)
+│   ├── models/
+│   │   ├── auth.models.ts         # LoginRequest, LoginResponse, UserProfile
+│   │   └── dashboard.models.ts    # ApiUser, Household, Ticket, DashboardStats
+│   └── store/
+│       └── auth.store.ts          # Signals: authToken, currentUser, isAuthenticated
+│                                  # Acciones: setAuth, setCurrentUser, clearAuth
 │
 ├── features/              # Módulos funcionales, lazy-loaded
+│   ├── auth/
+│   │   └── login/                 # LoginComponent (pública)
 │   ├── dashboard/
-│   ├── users/
-│   ├── households/
-│   ├── fridges/
-│   └── tickets/
+│   │   ├── dashboard.component.*  # KPIs + accesos rápidos
+│   │   ├── dashboard.routes.ts    # Rutas lazy del feature
+│   │   └── dashboard.service.ts   # forkJoin de /users, /households, /tickets
+│   ├── users/             # stub — próximo sprint
+│   ├── households/        # stub — próximo sprint
+│   ├── fridges/           # stub — próximo sprint
+│   └── tickets/           # stub — próximo sprint
 │
 ├── shared/                # Reutilizables sin estado de negocio
 │   └── components/
+│       ├── kpi-card/      # ★ KpiCardComponent — stats card reutilizable
 │       ├── modal/         # ModalComponent + ModalService (glassmorphism)
-│       ├── chart/         # Wrapper sobre la lib de charts elegida
-│       ├── kpi-card/      # Tarjeta de métrica del dashboard
-│       └── button/        # app-button con variants
+│       └── button/        # app-button con variants (pendiente)
 │
 └── layout/                # Shell visual privado
     ├── sidebar/
-    ├── topbar/            # (opcional — hoy vive inline en main-layout)
+    │   └── sidebar.component.*    # Drawer con nav items + collapse + logout
     └── main-layout/
+        └── layout.component.*     # Topbar (avatar dropdown) + <router-outlet>
 ```
 
 **Regla de dependencias (unidireccional):**
@@ -78,11 +91,11 @@ Declarada en `src/styles/_variables.css`. Editar allí, nunca hardcodear hex en 
 ```ts
 // app.routes.ts
 export const routes: Routes = [
-  { path: 'login', loadComponent: () => import('./features/auth/login.component').then(m => m.LoginComponent) },
+  { path: 'login', loadComponent: () => import('./features/auth/login/login.component') },
   {
     path: '',
     canActivate: [authGuard],
-    loadComponent: () => import('./layout/main-layout/layout.component').then(m => m.LayoutComponent),
+    loadComponent: () => import('./layout/main-layout/layout.component'),
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       { path: 'dashboard',  loadChildren: () => import('./features/dashboard/dashboard.routes') },
@@ -102,25 +115,101 @@ Cada feature expone sus propias rutas — carga perezosa por defecto.
 
 ## 5. Flujo de sesión
 
-1. `LoginComponent` llama a `AuthService.login()` → guarda token (HttpOnly cookie o `signalStore`).
-2. `authGuard` protege toda la zona `/` (layout principal).
-3. `LayoutComponent` expone el `user()` signal; `SidebarComponent.logout()` delega en `AuthService.logout()`, que limpia estado y navega a `/login`.
-4. `authInterceptor` añade el `Authorization` header y captura 401 → logout automático.
+1. `LoginComponent` llama a `AuthService.login()`.
+2. El servicio hace `POST /auth/login` → obtiene el token.
+3. Llama a `GET /users/me?JWT=<token>` (token pasado directamente, aún no en el store).
+4. Si `role === 'ROLE_ADMIN'` → `setAuth(token, user)` → navega a `/dashboard`.
+5. `authGuard` protege toda la zona `/`.
+6. En cada refresco de página: `LayoutComponent.ngOnInit()` detecta token en store  
+   pero `currentUser === null` → llama `AuthService.loadCurrentUser()` para hidratar el perfil.
+7. `SidebarComponent` y el dropdown del topbar delegan el logout en `AuthService.logout()`,  
+   que llama `clearAuth()` y navega a `/login`.
 
 ---
 
-## 6. Guía de estilos (UI)
+## 6. ★ Manejo de JWT — CRÍTICO
 
-- **Soft first:** bordes ≥ 14px, sombras con tinte verde, transiciones con `cubic-bezier(.22,1,.36,1)`.
-- **Jerarquía por peso y color**, no por tamaños extremos. Títulos 22-28px, cuerpo 14-16px.
-- **Espaciado:** múltiplos de 4. Padding de cards: 20-28px.
-- **Estados interactivos obligatorios:** `:hover`, `:focus-visible`, `:active` (scale .98).
-- **Accesibilidad:** contraste AA mínimo, `aria-label` en iconos, focus visible, ESC cierra modales.
-- **Responsive:** breakpoints a **960px** (sidebar → drawer) y **480px** (acciones apiladas).
+El token se envía como **header HTTP estándar**:
+
+```
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9...
+```
+
+### Implementación centralizada
+
+**`core/interceptors/auth.interceptor.ts`** — interceptor funcional (Angular 15+):
+
+```ts
+export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const token = authToken();  // lee del Signal store (cargado desde localStorage)
+
+  // Sin token o la request ya trae Authorization (login flow) → pasar sin tocar
+  if (!token || req.headers.has('Authorization')) {
+    return next(req);
+  }
+
+  return next(
+    req.clone({ headers: req.headers.set('Authorization', `Bearer ${token}`) })
+  );
+};
+```
+
+Registrado en `app.config.ts`:
+```ts
+provideHttpClient(withInterceptors([authInterceptor]))
+```
+
+### Caso especial: login flow
+
+Durante el login, el token no está en el store cuando se llama a `/users/me`.
+`AuthService.login()` inyecta el header manualmente con `HttpHeaders`:
+```ts
+this.http.get<UserProfile>(`${BASE_URL}/users/me`, {
+  headers: new HttpHeaders({ Authorization: `Bearer ${res.token}` }),
+})
+```
+El interceptor lo omite porque `req.headers.has('Authorization')` ya es `true`.
 
 ---
 
-## 7. Sistema de modales
+## 7. Componentes nuevos (este sprint)
+
+### `app-kpi-card` — `shared/components/kpi-card/`
+
+Tarjeta de métrica reutilizable. Inputs:
+
+| Input | Tipo | Default | Descripción |
+|---|---|---|---|
+| `title` | `string` | — (required) | Etiqueta de la métrica |
+| `value` | `number\|string` | `0` | Valor mostrado en grande |
+| `icon` | `'users'\|'home'\|'ticket'\|'grid'` | `'grid'` | Icono SVG inline |
+| `color` | `'green'\|'orange'\|'blue'` | `'green'` | Variante de color del acento |
+| `loading` | `boolean` | `false` | Muestra skeleton animado |
+| `description` | `string` | — | Texto secundario opcional |
+
+### `DashboardService` — `features/dashboard/`
+
+- Signals: `isLoading`, `error`, `stats` (readonly), `hasData`.
+- `loadStats()`: `forkJoin` de `/users`, `/households`, `/tickets` en paralelo.
+- El interceptor añade `?JWT` automáticamente a las tres peticiones.
+
+### `DashboardComponent` — `features/dashboard/`
+
+- Llama `svc.loadStats()` en `ngOnInit`.
+- Muestra 3 `<app-kpi-card>` en grid responsivo (3 col → 2 → 1).
+- Sección de accesos rápidos (4 links a features).
+- Banner de error con botón "Reintentar".
+
+### `LayoutComponent` — `layout/main-layout/`
+
+- Hydration del perfil: si hay token pero no `currentUser` → llama `loadCurrentUser()`.
+- Topbar con `avatar-btn` (iniciales + nombre + chevron).
+- Dropdown animado con info del usuario + badge de rol + botón logout.
+- `@ViewChild(SidebarComponent)` para abrir el drawer desde el burger.
+
+---
+
+## 8. Sistema de modales
 
 Único componente `<app-modal>` montado en el shell. Se invoca imperativamente:
 
@@ -128,7 +217,7 @@ Cada feature expone sus propias rutas — carga perezosa por defecto.
 const confirmed = await this.modal.open({
   title: 'Token generado',
   subtitle: 'Comparte este token con la otra persona',
-  component: TokenPreviewComponent, // opcional
+  component: TokenPreviewComponent,
   data: { token },
   size: 'md',
 });
@@ -140,11 +229,23 @@ const confirmed = await this.modal.open({
 
 ---
 
-## 8. Checklist antes de mergear
+## 9. Guía de estilos (UI)
+
+- **Soft first:** bordes ≥ 14px, sombras con tinte verde, transiciones con `cubic-bezier(.22,1,.36,1)`.
+- **Jerarquía por peso y color**, no por tamaños extremos. Títulos 22-28px, cuerpo 14-16px.
+- **Espaciado:** múltiplos de 4. Padding de cards: 20-28px.
+- **Estados interactivos obligatorios:** `:hover`, `:focus-visible`, `:active` (scale .98).
+- **Accesibilidad:** contraste AA mínimo, `aria-label` en iconos, focus visible, ESC cierra modales.
+- **Responsive:** breakpoints a **960px** (sidebar → drawer) y **480px** (acciones apiladas).
+
+---
+
+## 10. Checklist antes de mergear
 
 - [ ] Sin colores hardcodeados (todo vía tokens).
 - [ ] Signals para estado de UI; RxJS sólo para async real.
 - [ ] Standalone components con `imports` explícitos.
 - [ ] Feature lazy-loaded.
+- [ ] JWT en QueryString — nunca en `Authorization` header.
 - [ ] Responsive verificado en 360, 768 y 1280px.
 - [ ] Foco de teclado navegable, ESC cierra overlays.

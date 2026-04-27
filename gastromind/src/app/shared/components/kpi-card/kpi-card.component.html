@@ -1,0 +1,60 @@
+<!--
+  KpiCard: tarjeta de métrica con icono SVG inline, valor grande y título.
+  Variantes de color controladas por la clase CSS dinámica [color].
+-->
+<article class="kpi-card" [class]="'kpi-card--' + color" [attr.aria-label]="title">
+
+  <!-- Icono con fondo de color suave -->
+  <div class="kpi-card__icon" aria-hidden="true">
+    @switch (icon) {
+      @case ('users') {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      }
+      @case ('home') {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 10.5 12 3l9 7.5"/>
+          <path d="M5 9.5V21h5v-5h4v5h5V9.5"/>
+        </svg>
+      }
+      @case ('ticket') {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4Z"/>
+          <path d="M13 7v10"/>
+        </svg>
+      }
+      @default {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="9" rx="2"/>
+          <rect x="14" y="3" width="7" height="5" rx="2"/>
+          <rect x="14" y="12" width="7" height="9" rx="2"/>
+          <rect x="3" y="16" width="7" height="5" rx="2"/>
+        </svg>
+      }
+    }
+  </div>
+
+  <!-- Contenido textual -->
+  <div class="kpi-card__body">
+    <span class="kpi-card__title">{{ title }}</span>
+
+    @if (loading) {
+      <div class="kpi-card__skeleton" aria-label="Cargando…"></div>
+    } @else {
+      <strong class="kpi-card__value">{{ value | number }}</strong>
+    }
+
+    @if (description && !loading) {
+      <span class="kpi-card__desc">{{ description }}</span>
+    }
+  </div>
+
+</article>
