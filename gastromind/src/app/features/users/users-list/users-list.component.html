@@ -1,0 +1,111 @@
+<section class="users">
+
+  <!-- ── Cabecera ── -->
+  <header class="users__header">
+    <div>
+      <h1 class="users__title">Usuarios</h1>
+      <p class="users__subtitle">
+        @if (svc.isLoading()) { Cargando… }
+        @else { {{ svc.users().length }} usuarios registrados }
+      </p>
+    </div>
+  </header>
+
+  <!-- ── Error ── -->
+  @if (svc.error()) {
+    <div class="users__error" role="alert">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      {{ svc.error() }}
+      <button class="users__retry" (click)="svc.loadAll()">Reintentar</button>
+    </div>
+  }
+
+  <!-- ── Tabla ── -->
+  <div class="table-wrap">
+    @if (svc.isLoading()) {
+      <div class="table-skeleton">
+        @for (i of [1,2,3,4,5]; track i) {
+          <div class="skeleton-row">
+            <div class="skeleton-avatar"></div>
+            <div class="skeleton-text"></div>
+            <div class="skeleton-text skeleton-text--sm"></div>
+            <div class="skeleton-badge"></div>
+          </div>
+        }
+      </div>
+    } @else if (svc.users().length === 0 && !svc.error()) {
+      <div class="table-empty">
+        <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <p>No hay usuarios registrados.</p>
+      </div>
+    } @else {
+      <table class="data-table" role="grid">
+        <thead>
+          <tr>
+            <th scope="col">Usuario</th>
+            <th scope="col">Email</th>
+            <th scope="col">Rol</th>
+            <th scope="col">Hogar ID</th>
+            <th scope="col">Alérgenos</th>
+            <th scope="col" class="col-actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of svc.users(); track user.id) {
+            <tr
+              class="data-table__row"
+              (click)="goToDetail(user.id)"
+              tabindex="0"
+              (keydown.enter)="goToDetail(user.id)"
+              [attr.aria-label]="'Ver detalle de ' + user.name"
+            >
+              <td>
+                <div class="user-cell">
+                  <span class="user-cell__avatar">{{ initials(user.name) }}</span>
+                  <span class="user-cell__name">{{ user.name }}</span>
+                </div>
+              </td>
+              <td class="text-muted">{{ user.email }}</td>
+              <td><span [class]="roleBadgeClass(user.role)">{{ formatRole(user.role) }}</span></td>
+              <td class="text-mono">{{ shortId(user.houseHold_id) }}</td>
+              <td>
+                @if (user.allergens.length) {
+                  <div class="allergen-list">
+                    @for (a of user.allergens; track a.id) {
+                      <span class="allergen-tag">{{ a.name }}</span>
+                    }
+                  </div>
+                } @else {
+                  <span class="text-soft">—</span>
+                }
+              </td>
+              <td class="col-actions" (click)="$event.stopPropagation()">
+                <button
+                  class="btn-icon btn-icon--danger"
+                  (click)="onDelete($event, user)"
+                  [attr.aria-label]="'Eliminar a ' + user.name"
+                  title="Eliminar usuario"
+                >
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                    <path d="M10 11v6"/><path d="M14 11v6"/>
+                    <path d="M9 6V4h6v2"/>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+</section>

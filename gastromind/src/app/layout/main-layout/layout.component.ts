@@ -10,6 +10,8 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { ModalComponent } from '../../shared/components/modal';
+import { ToastComponent } from '../../shared/components/toast/toast.component';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { AuthService } from '../../core/services/auth.service';
 import { authToken, currentUser } from '../../core/store/auth.store';
 
@@ -23,7 +25,7 @@ import { authToken, currentUser } from '../../core/store/auth.store';
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, SidebarComponent, ModalComponent],
+  imports: [CommonModule, RouterOutlet, SidebarComponent, ModalComponent, ToastComponent, ConfirmDialogComponent],
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.css',
 })

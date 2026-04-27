@@ -1,5 +1,16 @@
 import { Routes } from '@angular/router';
 
-// Stub — implementar en el sprint de la feature Users
-const routes: Routes = [{ path: '', children: [] }];
+const routes: Routes = [
+  {
+    path: '',
+    loadComponent: () =>
+      import('./users-list/users-list.component').then(m => m.UsersListComponent),
+  },
+  {
+    path: ':id',
+    loadComponent: () =>
+      import('./user-detail/user-detail.component').then(m => m.UserDetailComponent),
+  },
+];
+
 export default routes;
