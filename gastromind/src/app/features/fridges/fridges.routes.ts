@@ -1,5 +1,16 @@
 import { Routes } from '@angular/router';
 
-// Stub — implementar en el sprint de la feature Fridges
-const routes: Routes = [{ path: '', children: [] }];
+const routes: Routes = [
+  {
+    path: '',
+    loadComponent: () =>
+      import('./fridges-list/fridges-list.component').then(m => m.FridgesListComponent),
+  },
+  {
+    path: ':id',
+    loadComponent: () =>
+      import('./fridge-detail/fridge-detail.component').then(m => m.FridgeDetailComponent),
+  },
+];
+
 export default routes;

@@ -1,0 +1,391 @@
+<section class="fridge-detail">
+
+  <!-- ── Volver ── -->
+  <button class="back-btn" (click)="goBack()">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    Volver a neveras
+  </button>
+
+  @if (svc.isLoadingDetail()) {
+    <div class="detail-skeleton">
+      <div class="skeleton-icon-lg"></div>
+      <div class="skeleton-lines">
+        <div class="skeleton-line skeleton-line--lg"></div>
+        <div class="skeleton-line skeleton-line--md"></div>
+      </div>
+    </div>
+  } @else if (svc.error()) {
+    <div class="detail-error" role="alert">{{ svc.error() }}</div>
+  } @else if (svc.selectedFridge(); as fridge) {
+
+    <!-- ── Card info nevera ── -->
+    <div class="detail-card">
+
+      <!-- ── Hero ── -->
+      <div class="detail-hero">
+        <div class="detail-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="21" rx="2"/>
+            <path d="M16 3v4M8 3v4M2 11h20"/>
+          </svg>
+        </div>
+        <div class="detail-hero__text">
+          <h1 class="detail-name">Nevera <span class="mono-id">{{ shortId(fridge.id) }}</span></h1>
+          <span class="detail-meta">Hogar: <span class="mono-id">{{ shortId(fridge.household_id) }}</span></span>
+        </div>
+        <div class="detail-hero__actions">
+          <button class="btn btn--secondary" (click)="openFridgeModal()">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Editar
+          </button>
+        </div>
+      </div>
+
+      <div class="detail-divider"></div>
+
+      <!-- ── Info ── -->
+      <dl class="detail-fields">
+        <div class="detail-field">
+          <dt>ID</dt>
+          <dd class="mono">{{ fridge.id }}</dd>
+        </div>
+        <div class="detail-field">
+          <dt>Hogar</dt>
+          <dd class="mono">{{ fridge.household_id }}</dd>
+        </div>
+      </dl>
+
+      <div class="detail-divider"></div>
+
+      <!-- ── Items de la nevera ── -->
+      <div class="detail-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+              <path d="M3.3 7 12 12l8.7-5M12 22V12"/>
+            </svg>
+            Items de la nevera
+          </h2>
+          <button class="btn btn--primary btn--sm" (click)="openAddItem()">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Añadir item
+          </button>
+        </div>
+
+        <!-- ── Filtros ── -->
+        <div class="filter-bar">
+          <button
+            class="filter-btn"
+            [class.filter-btn--active]="filterMode() === 'all'"
+            (click)="setFilter('all')"
+          >Todos</button>
+          <button
+            class="filter-btn"
+            [class.filter-btn--active]="filterMode() === 'expiring'"
+            (click)="setFilter('expiring')"
+          >
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            Por caducar
+          </button>
+          <div class="filter-category">
+            <button
+              class="filter-btn"
+              [class.filter-btn--active]="filterMode() === 'category'"
+              (click)="filterMode.set('category')"
+            >Por categoría</button>
+            @if (filterMode() === 'category') {
+              <input
+                class="category-input"
+                type="text"
+                placeholder="ID de categoría"
+                [value]="categoryId()"
+                (input)="categoryId.set($any($event.target).value)"
+                (keydown.enter)="applyCategory()"
+                aria-label="ID de categoría"
+              />
+              <button class="btn btn--secondary btn--sm" (click)="applyCategory()">Filtrar</button>
+            }
+          </div>
+        </div>
+
+        <!-- ── Error items ── -->
+        @if (svc.itemsError()) {
+          <div class="page-error" role="alert">
+            {{ svc.itemsError() }}
+            <button class="page-error__retry" (click)="svc.loadItems(fridge.id)">Reintentar</button>
+          </div>
+        }
+
+        <!-- ── Lista items ── -->
+        @if (svc.isLoadingItems()) {
+          <div class="items-skeleton">
+            @for (i of [1,2,3]; track i) {
+              <div class="item-skeleton-row">
+                <div class="sk-text sk-text--md"></div>
+                <div class="sk-text sk-text--sm"></div>
+                <div class="sk-badge"></div>
+              </div>
+            }
+          </div>
+        } @else if (svc.items().length === 0 && !svc.itemsError()) {
+          <div class="items-empty">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+              <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+            </svg>
+            <p>La nevera está vacía.</p>
+            <button class="btn btn--primary btn--sm" (click)="openAddItem()">Añadir primer item</button>
+          </div>
+        } @else {
+          <div class="items-table-wrap">
+            <table class="items-table" role="grid">
+              <thead>
+                <tr>
+                  <th scope="col">Producto ID</th>
+                  <th scope="col">Cantidad</th>
+                  <th scope="col">Caducidad</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col" class="col-actions">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of svc.items(); track item.id) {
+                  <tr class="items-table__row" [class.items-table__row--busy]="isBusy(item.id)">
+                    <td class="mono-sm">{{ item.productId }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>
+                      @if (item.expirationDate) { {{ item.expirationDate }} }
+                      @else { <span class="text-soft">—</span> }
+                    </td>
+                    <td>
+                      <span class="badge" [ngClass]="statusClass(item.status)">
+                        {{ statusLabel(item.status) }}
+                      </span>
+                    </td>
+                    <td class="col-actions">
+                      <div class="item-actions">
+                        <!-- Editar -->
+                        <button
+                          class="btn-icon btn-icon--edit"
+                          (click)="openEditItem(item)"
+                          [disabled]="isBusy(item.id)"
+                          title="Editar item"
+                        >
+                          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                          </svg>
+                        </button>
+                        <!-- Marcar consumido -->
+                        <button
+                          class="btn-icon btn-icon--consume"
+                          (click)="onMarkConsumed(item)"
+                          [disabled]="isBusy(item.id) || item.status === 'CONSUMED'"
+                          title="Marcar como consumido"
+                        >
+                          @if (isBusy(item.id)) {
+                            <span class="spinner spinner--xs" aria-hidden="true"></span>
+                          } @else {
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                          }
+                        </button>
+                        <!-- Consumir cantidad -->
+                        <button
+                          class="btn-icon btn-icon--partial"
+                          (click)="openConsumeModal(item)"
+                          [disabled]="isBusy(item.id) || item.status === 'CONSUMED'"
+                          title="Consumir cantidad"
+                        >
+                          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M18 8h1a4 4 0 0 1 0 8h-1"/>
+                            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
+                            <line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
+                          </svg>
+                        </button>
+                        <!-- Eliminar -->
+                        <button
+                          class="btn-icon btn-icon--danger"
+                          (click)="onDeleteItem(item)"
+                          [disabled]="isBusy(item.id)"
+                          title="Eliminar item"
+                        >
+                          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                            <path d="M10 11v6"/><path d="M14 11v6"/>
+                            <path d="M9 6V4h6v2"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      <div class="detail-divider"></div>
+
+      <!-- ── Zona peligrosa ── -->
+      <div class="danger-zone">
+        <div>
+          <p class="danger-zone__label">Zona peligrosa</p>
+          <p class="danger-zone__desc">La eliminación de la nevera es permanente e irreversible.</p>
+        </div>
+        <button class="btn-danger" (click)="onDeleteFridge()">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            <path d="M10 11v6"/><path d="M14 11v6"/>
+            <path d="M9 6V4h6v2"/>
+          </svg>
+          Eliminar nevera
+        </button>
+      </div>
+
+    </div>
+
+  }
+</section>
+
+<!-- ── Modal editar nevera ── -->
+@if (showFridgeModal()) {
+  <div class="modal-backdrop" (click)="closeFridgeModal()" role="dialog" aria-modal="true" aria-label="Editar nevera">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2 class="modal-title">Editar nevera</h2>
+        <button class="modal-close" (click)="closeFridgeModal()" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </header>
+      <div class="modal-body">
+        <div class="form-field">
+          <label class="form-label" for="editHouseholdSelect">Hogar asignado</label>
+          @if (houseSvc.isLoading()) {
+            <p class="form-hint">Cargando hogares…</p>
+          } @else {
+            <select id="editHouseholdSelect" class="select" [(ngModel)]="formHouseholdId">
+              @for (h of householdOptions(); track h.id) {
+                <option [value]="h.id">{{ h.name }} ({{ h.id.slice(0, 8) }}…)</option>
+              }
+            </select>
+          }
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn btn--ghost" (click)="closeFridgeModal()" [disabled]="isSavingFridge()">Cancelar</button>
+        <button class="btn btn--primary" (click)="onSaveFridge()" [disabled]="isSavingFridge() || !formHouseholdId">
+          @if (isSavingFridge()) {
+            <span class="spinner" aria-hidden="true"></span> Guardando…
+          } @else { Guardar cambios }
+        </button>
+      </footer>
+    </div>
+  </div>
+}
+
+<!-- ── Modal añadir/editar item ── -->
+@if (showItemModal()) {
+  <div class="modal-backdrop" (click)="closeItemModal()" role="dialog" aria-modal="true" [attr.aria-label]="itemModalMode() === 'add' ? 'Añadir item' : 'Editar item'">
+    <div class="modal-card modal-card--lg" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2 class="modal-title">
+          @if (itemModalMode() === 'add') { Añadir item } @else { Editar item }
+        </h2>
+        <button class="modal-close" (click)="closeItemModal()" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </header>
+      <div class="modal-body">
+        <!-- Product ID -->
+        <div class="form-field">
+          <label class="form-label" for="itemProductId">ID del producto</label>
+          <input
+            id="itemProductId"
+            class="input"
+            type="text"
+            placeholder="UUID del producto"
+            [(ngModel)]="itemProductId"
+          />
+        </div>
+        <!-- Quantity & Expiration -->
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label" for="itemQty">Cantidad</label>
+            <input id="itemQty" class="input" type="number" min="0.01" step="0.01" [(ngModel)]="itemQuantity" />
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="itemExp">Fecha de caducidad</label>
+            <input id="itemExp" class="input" type="date" [(ngModel)]="itemExpiration" />
+          </div>
+        </div>
+        <!-- Status -->
+        <div class="form-field">
+          <label class="form-label" for="itemStatus">Estado</label>
+          <select id="itemStatus" class="select" [(ngModel)]="itemStatus">
+            @for (s of allStatuses; track s) {
+              <option [value]="s">{{ statusLabels[s] }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn btn--ghost" (click)="closeItemModal()" [disabled]="isSavingItem()">Cancelar</button>
+        <button class="btn btn--primary" (click)="onSaveItem()" [disabled]="isSavingItem() || !itemProductId || itemQuantity <= 0">
+          @if (isSavingItem()) {
+            <span class="spinner" aria-hidden="true"></span> Guardando…
+          } @else {
+            @if (itemModalMode() === 'add') { Añadir item } @else { Guardar cambios }
+          }
+        </button>
+      </footer>
+    </div>
+  </div>
+}
+
+<!-- ── Modal consumir cantidad ── -->
+@if (showConsumeModal()) {
+  <div class="modal-backdrop" (click)="closeConsumeModal()" role="dialog" aria-modal="true" aria-label="Consumir cantidad">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2 class="modal-title">Consumir cantidad</h2>
+        <button class="modal-close" (click)="closeConsumeModal()" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </header>
+      <div class="modal-body">
+        <div class="form-field">
+          <label class="form-label" for="consumeQty">Cantidad a consumir</label>
+          <input id="consumeQty" class="input" type="number" min="0.01" step="0.01" [(ngModel)]="consumeQuantity" />
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn btn--ghost" (click)="closeConsumeModal()" [disabled]="isSavingConsume()">Cancelar</button>
+        <button class="btn btn--primary" (click)="onConsumePartial()" [disabled]="isSavingConsume() || consumeQuantity <= 0">
+          @if (isSavingConsume()) {
+            <span class="spinner" aria-hidden="true"></span> Consumiendo…
+          } @else { Consumir }
+        </button>
+      </footer>
+    </div>
+  </div>
+}

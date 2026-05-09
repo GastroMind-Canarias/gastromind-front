@@ -1,0 +1,177 @@
+<section class="fridges">
+
+  <!-- ── Cabecera ── -->
+  <header class="fridges__header">
+    <div>
+      <h1 class="fridges__title">Neveras</h1>
+      <p class="fridges__subtitle">
+        @if (svc.isLoading()) { Cargando… }
+        @else { {{ svc.fridges().length }} neveras registradas }
+      </p>
+    </div>
+    <button class="btn btn--primary" (click)="openCreate()">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nueva nevera
+    </button>
+  </header>
+
+  <!-- ── Error ── -->
+  @if (svc.error()) {
+    <div class="page-error" role="alert">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      {{ svc.error() }}
+      <button class="page-error__retry" (click)="svc.loadAll()">Reintentar</button>
+    </div>
+  }
+
+  <!-- ── Tabla ── -->
+  <div class="table-wrap">
+    @if (svc.isLoading()) {
+      <div class="table-skeleton">
+        @for (i of [1,2,3,4,5]; track i) {
+          <div class="skeleton-row">
+            <div class="skeleton-icon"></div>
+            <div class="skeleton-text"></div>
+            <div class="skeleton-text skeleton-text--sm"></div>
+          </div>
+        }
+      </div>
+    } @else if (svc.fridges().length === 0 && !svc.error()) {
+      <div class="table-empty">
+        <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2" y="3" width="20" height="21" rx="2"/>
+          <path d="M16 3v4M8 3v4M2 11h20M8 15h.01M12 15h.01M16 15h.01M8 19h.01M12 19h.01M16 19h.01"/>
+        </svg>
+        <p>No hay neveras registradas.</p>
+        <button class="btn btn--primary" (click)="openCreate()">Añadir primera nevera</button>
+      </div>
+    } @else {
+      <table class="data-table" role="grid">
+        <thead>
+          <tr>
+            <th scope="col">Nevera</th>
+            <th scope="col">Hogar asignado</th>
+            <th scope="col">ID completo</th>
+            <th scope="col" class="col-actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of svc.fridges(); track f.id) {
+            <tr
+              class="data-table__row"
+              (click)="goToDetail(f.id)"
+              tabindex="0"
+              (keydown.enter)="goToDetail(f.id)"
+              [attr.aria-label]="'Ver detalle de nevera ' + f.id"
+            >
+              <td>
+                <div class="fridge-cell">
+                  <div class="fridge-cell__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="2" y="3" width="20" height="21" rx="2"/>
+                      <path d="M16 3v4M8 3v4M2 11h20"/>
+                    </svg>
+                  </div>
+                  <span class="fridge-cell__id">{{ shortId(f.id) }}</span>
+                </div>
+              </td>
+              <td class="text-mono">{{ shortId(f.household_id) }}</td>
+              <td class="text-mono text-xs">{{ f.id }}</td>
+              <td class="col-actions" (click)="$event.stopPropagation()">
+                <div class="action-group">
+                  <button
+                    class="btn-icon btn-icon--edit"
+                    (click)="openEdit($event, f)"
+                    title="Editar nevera"
+                    aria-label="Editar nevera"
+                  >
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                  <button
+                    class="btn-icon btn-icon--danger"
+                    (click)="onDelete($event, f)"
+                    title="Eliminar nevera"
+                    aria-label="Eliminar nevera"
+                  >
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                      <path d="M10 11v6"/><path d="M14 11v6"/>
+                      <path d="M9 6V4h6v2"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+</section>
+
+<!-- ── Modal crear/editar nevera ── -->
+@if (showModal()) {
+  <div class="modal-backdrop" (click)="closeModal()" role="dialog" aria-modal="true" [attr.aria-label]="modalMode() === 'create' ? 'Crear nevera' : 'Editar nevera'">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2 class="modal-title">
+          @if (modalMode() === 'create') { Nueva nevera }
+          @else { Editar nevera }
+        </h2>
+        <button class="modal-close" (click)="closeModal()" aria-label="Cerrar modal">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </header>
+
+      <div class="modal-body">
+        <div class="form-field">
+          <label class="form-label" for="householdSelect">Hogar asignado</label>
+          @if (houseSvc.isLoading()) {
+            <p class="form-hint">Cargando hogares…</p>
+          } @else if (householdOptions().length === 0) {
+            <p class="form-hint form-hint--warn">No hay hogares disponibles.</p>
+          } @else {
+            <select
+              id="householdSelect"
+              class="select"
+              [(ngModel)]="formHouseholdId"
+              aria-label="Seleccionar hogar"
+            >
+              @for (h of householdOptions(); track h.id) {
+                <option [value]="h.id">{{ h.name }} ({{ h.id.slice(0, 8) }}…)</option>
+              }
+            </select>
+          }
+        </div>
+      </div>
+
+      <footer class="modal-footer">
+        <button class="btn btn--ghost" (click)="closeModal()" [disabled]="isSaving()">Cancelar</button>
+        <button
+          class="btn btn--primary"
+          (click)="onSave()"
+          [disabled]="isSaving() || !formHouseholdId"
+        >
+          @if (isSaving()) {
+            <span class="spinner" aria-hidden="true"></span>
+            Guardando…
+          } @else {
+            @if (modalMode() === 'create') { Crear nevera }
+            @else { Guardar cambios }
+          }
+        </button>
+      </footer>
+    </div>
+  </div>
+}

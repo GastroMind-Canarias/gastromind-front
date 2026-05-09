@@ -8,7 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm start          # dev server at localhost:4200 (with proxy)
 npm run build      # production build → dist/
 npm run watch      # build in watch mode (dev config)
-npm test           # Vitest unit tests
+npm test           # Vitest unit tests (all)
+npx vitest run src/app/path/to/file.spec.ts   # single test file
 ng generate ...    # Angular schematics (component, service, guard, etc.)
 ```
 
@@ -66,10 +67,106 @@ CSS custom properties only — no SCSS, no UI library. Design tokens live in `sr
 
 Single `ModalComponent` mounted in `LayoutComponent`. `ModalService` (`core/services/modal.service.ts`) opens modals via signal; `.open()` returns a `Promise<result>`, `.close(result)` resolves it. Never mount multiple modal outlets.
 
+### Toast Notifications
+
+`ToastService` (`shared/toast/toast.service.ts`) — inject and call convenience methods:
+```ts
+this.toast.success('Done');
+this.toast.error('Failed');   // auto-dismisses after 5000ms
+this.toast.info('...');
+this.toast.warning('...');
+```
+`ToastComponent` is mounted once in `LayoutComponent`.
+
+### Confirm Dialogs
+
+`ConfirmDialogService` (`shared/confirm-dialog/`) — two-step confirmation UI. Returns `Promise<boolean>`:
+```ts
+const ok = await this.confirm.confirm({ title, message, entityName });
+if (!ok) return;
+```
+Guard every destructive action (delete, remove member, etc.) with this pattern.
+
+### Service Signal Pattern
+
+Feature services follow this structure — signals for state, RxJS only for the HTTP call:
+```ts
+readonly items    = signal<Item[]>([]);
+readonly isLoading = signal(false);
+readonly error    = signal<string | null>(null);
+
+loadAll() {
+  this.isLoading.set(true);
+  this.http.get<Item[]>('/api/v1/...').subscribe({
+    next:  v => { this.items.set(v); this.isLoading.set(false); },
+    error: e => { this.error.set(e.message); this.isLoading.set(false); },
+  });
+}
+```
+After any mutation (`delete`, `update`, `create`) call `loadAll()` or `loadById()` to refresh — no optimistic updates. Expose signals as `.asReadonly()` when injected by components.
+
+Use `computed()` for derived state (e.g., `availableAppliances`, `hasData`). Use `effect()` in components to react to service signal changes (e.g., sync `selectedUser` → local form state).
+
+### Domain Enums
+
+User roles: `ROLE_ADMIN | ROLE_OWNER | ROLE_MEMBER | ROLE_PREMIUM_MEMBER | ROLE_TESTS`
+
+Appliance types (`core/models/households.models.ts`):
+`HORNO | MICROONDAS | AIR_FRYER | VITROCERAMICA | ROBOT_COCINA | BATIDORA | OLLA_EXPRESS`
+Use `APPLIANCE_LABELS` map for display names and `ALL_APPLIANCES` array for selects.
+
+### API Endpoints
+
+```
+POST   /api/v1/auth/login
+GET    /api/v1/users/me
+GET    /api/v1/users
+GET    /api/v1/users/:id
+PATCH  /api/v1/users/:id/role?newRole=<role>
+DELETE /api/v1/users/:id
+
+GET    /api/v1/households
+GET    /api/v1/households/:id
+POST   /api/v1/households/:id/appliances?appliance=<type>
+POST   /api/v1/households/:id/invite
+GET    /api/v1/households/:id/members
+PATCH  /api/v1/households/:id/promote/:userId
+DELETE /api/v1/households/:id/members/:userId
+DELETE /api/v1/households/:id
+
+GET    /api/v1/tickets
+
+GET    /api/v1/fridges
+GET    /api/v1/fridges/:id
+POST   /api/v1/fridges                                      { household_id }
+PUT    /api/v1/fridges/:id                                  { household_id }
+DELETE /api/v1/fridges/:id
+
+GET    /api/v1/fridge-items/fridge/:fridgeId
+GET    /api/v1/fridge-items/fridge/:fridgeId/expiring
+GET    /api/v1/fridge-items/fridge/:fridgeId/category/:categoryId
+POST   /api/v1/fridge-items                                 { productId, fridgeId, quantity, expirationDate, status }
+PUT    /api/v1/fridge-items/:id                             (update stock)
+DELETE /api/v1/fridge-items/:id
+PUT    /api/v1/fridge-items/:id/mark-consumed
+PUT    /api/v1/fridge-items/:id/consume                     { quantity }
+```
+
+### Dependency Injection
+
+All components and services use the functional `inject()` API — never constructor injection:
+```ts
+private readonly svc = inject(UsersService);
+private readonly toast = inject(ToastService);
+```
+Services that components inject should expose signals as `.asReadonly()`.
+
 ### Feature Scaffolding Pattern
 
 New features follow this pattern:
 - `features/<name>/<name>.routes.ts` — exports lazy route config
 - `features/<name>/<name>.component.ts` — standalone component
 - `features/<name>/<name>.service.ts` — Signals + HttpClient, no class-level state
-- Register in `app.routes.ts` with `loadChildren`
+- Register in `app.routes.ts` with `loadChildren` (multi-route) or `loadComponent` (single component)
+
+`/tickets` is currently a stub awaiting implementation.
