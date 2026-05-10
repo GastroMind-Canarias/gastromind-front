@@ -135,6 +135,11 @@ DELETE /api/v1/households/:id/members/:userId
 DELETE /api/v1/households/:id
 
 GET    /api/v1/tickets
+GET    /api/v1/tickets/:id
+POST   /api/v1/tickets                                      { user_id, store_id, total_mount, purchaseDate, items[] }
+PUT    /api/v1/tickets/:id
+DELETE /api/v1/tickets/:id
+
 
 GET    /api/v1/fridges
 GET    /api/v1/fridges/:id
@@ -169,4 +174,4 @@ New features follow this pattern:
 - `features/<name>/<name>.service.ts` — Signals + HttpClient, no class-level state
 - Register in `app.routes.ts` with `loadChildren` (multi-route) or `loadComponent` (single component)
 
-`/tickets` is currently a stub awaiting implementation.
+Both `/fridges` and `/tickets` are fully implemented.
