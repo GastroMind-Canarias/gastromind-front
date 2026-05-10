@@ -37,7 +37,8 @@ export class SidebarComponent {
     { label: 'Users',      route: '/users',      icon: 'users'     },
     { label: 'Households', route: '/households', icon: 'home'      },
     { label: 'Fridges',    route: '/fridges',    icon: 'fridge'    },
-    { label: 'Tickets',    route: '/tickets',    icon: 'ticket'    },
+    { label: 'Tickets',          route: '/tickets',          icon: 'ticket'    },
+    { label: 'Usual Purchases',  route: '/usual-purchases',  icon: 'shopping'  },
   ]);
 
   /** Clase derivada: evita lógica en template. */
