@@ -93,7 +93,7 @@
           <tr>
             <th scope="col">ID</th>
             <th scope="col">Usuario</th>
-            <th scope="col">Product ID</th>
+            <th scope="col">Producto</th>
             <th scope="col">
               <button class="th-sort" (click)="toggleSort()">
                 Cantidad objetivo
@@ -132,7 +132,7 @@
                   <span>{{ row.userName }}</span>
                 </div>
               </td>
-              <td><span class="mono-sm">{{ shortId(row.purchase.product_id) }}</span></td>
+              <td>{{ row.productName }}</td>
               <td>
                 <span class="qty-badge">{{ row.purchase.target_quantity }}</span>
               </td>

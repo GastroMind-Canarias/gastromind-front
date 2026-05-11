@@ -79,7 +79,7 @@
                   <span class="fridge-cell__id">{{ shortId(f.id) }}</span>
                 </div>
               </td>
-              <td class="text-mono">{{ shortId(f.household_id) }}</td>
+              <td>{{ householdName(f.household_id) }}</td>
               <td class="text-mono text-xs">{{ f.id }}</td>
               <td class="col-actions" (click)="$event.stopPropagation()">
                 <div class="action-group">

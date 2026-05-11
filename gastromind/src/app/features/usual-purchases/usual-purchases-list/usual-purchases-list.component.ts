@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, effect, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -28,18 +28,21 @@ export class UsualPurchasesListComponent implements OnInit {
   readonly sortDir     = signal<SortDir>('desc');
 
   readonly displayPurchases = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-    const users = this.usersSvc.users();
-    const dir   = this.sortDir();
+    const query      = this.searchQuery().trim().toLowerCase();
+    const users      = this.usersSvc.users();
+    const productMap = this.svc.productMap();
+    const dir        = this.sortDir();
 
     let result = this.svc.purchases().map(p => ({
-      purchase: p,
-      userName: users.find(u => u.id === p.user_id)?.name ?? p.user_id.slice(0, 8) + '…',
+      purchase:    p,
+      userName:    users.find(u => u.id === p.user_id)?.name ?? p.user_id.slice(0, 8) + '…',
+      productName: productMap[p.product_id] ?? p.product_id.slice(0, 8) + '…',
     }));
 
     if (query) {
       result = result.filter(r =>
         r.userName.toLowerCase().includes(query) ||
+        r.productName.toLowerCase().includes(query) ||
         r.purchase.product_id.toLowerCase().includes(query)
       );
     }
@@ -51,6 +54,12 @@ export class UsualPurchasesListComponent implements OnInit {
 
     return result;
   });
+
+  constructor() {
+    effect(() => {
+      if (this.svc.purchases().length) this.svc.loadProducts();
+    });
+  }
 
   /* ── Modal ── */
   readonly showModal = signal(false);

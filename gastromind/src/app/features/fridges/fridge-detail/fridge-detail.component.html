@@ -33,7 +33,10 @@
         </div>
         <div class="detail-hero__text">
           <h1 class="detail-name">Nevera <span class="mono-id">{{ shortId(fridge.id) }}</span></h1>
-          <span class="detail-meta">Hogar: <span class="mono-id">{{ shortId(fridge.household_id) }}</span></span>
+          <span class="detail-meta">Hogar:
+            @if (resolvedHousehold()) { {{ resolvedHousehold()!.name }} }
+            @else { <span class="mono-id">{{ shortId(fridge.household_id) }}</span> }
+          </span>
         </div>
         <div class="detail-hero__actions">
           <button class="btn btn--secondary" (click)="openFridgeModal()">
@@ -56,7 +59,14 @@
         </div>
         <div class="detail-field">
           <dt>Hogar</dt>
-          <dd class="mono">{{ fridge.household_id }}</dd>
+          <dd>
+            @if (resolvedHousehold()) {
+              {{ resolvedHousehold()!.name }}
+              <span class="mono text-soft" style="font-size: var(--fs-xs)"> ({{ fridge.household_id.slice(0,8) }}…)</span>
+            } @else {
+              <span class="mono">{{ fridge.household_id }}</span>
+            }
+          </dd>
         </div>
       </dl>
 

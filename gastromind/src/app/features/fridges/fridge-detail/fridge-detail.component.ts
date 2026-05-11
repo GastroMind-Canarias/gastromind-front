@@ -68,6 +68,12 @@ export class FridgeDetailComponent implements OnInit {
   /* ── Computed ── */
   readonly householdOptions = computed(() => this.houseSvc.households());
 
+  readonly resolvedHousehold = computed(() => {
+    const f = this.svc.selectedFridge();
+    if (!f) return null;
+    return this.houseSvc.households().find(h => h.id === f.household_id) ?? null;
+  });
+
   private get fridgeId(): string {
     return this.route.snapshot.paramMap.get('id')!;
   }

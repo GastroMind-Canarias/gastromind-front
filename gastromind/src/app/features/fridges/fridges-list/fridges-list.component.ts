@@ -49,6 +49,10 @@ export class FridgesListComponent implements OnInit {
     return id.slice(0, 8) + '…';
   }
 
+  householdName(id: string): string {
+    return this.houseSvc.households().find(h => h.id === id)?.name ?? this.shortId(id);
+  }
+
   /* ── Modal helpers ── */
   openCreate(): void {
     this.modalMode.set('create');
