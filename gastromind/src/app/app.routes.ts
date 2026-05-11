@@ -49,6 +49,10 @@ export const routes: Routes = [
         path: 'units',
         loadChildren: () => import('./features/units/units.routes'),
       },
+      {
+        path: 'usual-purchases',
+        loadChildren: () => import('./features/usual-purchases/usual-purchases.routes'),
+      },
     ],
   },
 
