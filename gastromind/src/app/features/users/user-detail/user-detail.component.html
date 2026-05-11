@@ -1,10 +1,7 @@
 <section class="user-detail">
 
-  <!-- ── Volver ── -->
   <button class="back-btn" (click)="goBack()">
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <polyline points="15 18 9 12 15 6"/>
-    </svg>
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
     Volver a usuarios
   </button>
 
@@ -23,12 +20,15 @@
 
     <div class="detail-card">
 
-      <!-- ── Avatar + nombre ── -->
+      <!-- ── Hero ── -->
       <div class="detail-card__hero">
         <div class="detail-avatar">{{ initials(user.name) }}</div>
         <div>
-          <h1 class="detail-name">{{ user.name }}</h1>
-          <span class="detail-role-badge">{{ formatRole(user.role) }}</span>
+          <div class="detail-hero__title">
+            <h1 class="detail-name">{{ user.name }}</h1>
+            <span class="detail-role-badge">{{ formatRole(user.role) }}</span>
+          </div>
+          <span class="detail-meta">{{ user.email }}</span>
         </div>
       </div>
 
@@ -37,52 +37,23 @@
       <!-- ── Campos ── -->
       <dl class="detail-fields">
         <div class="detail-field">
-          <dt>
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-              <polyline points="22,6 12,13 2,6"/>
-            </svg>
-            Email
-          </dt>
-          <dd>{{ user.email }}</dd>
-        </div>
-
-        <div class="detail-field">
-          <dt>
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
-            ID de Usuario
-          </dt>
+          <dt>ID</dt>
           <dd class="detail-field__mono">{{ user.id }}</dd>
         </div>
-
         <div class="detail-field">
-          <dt>
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-5h4v5h5V9.5"/>
-            </svg>
-            Hogar (houseHold_id)
-          </dt>
-          <dd class="detail-field__mono">{{ user.houseHold_id }}</dd>
+          <dt>Email</dt>
+          <dd>{{ user.email }}</dd>
         </div>
-
         <div class="detail-field">
-          <dt>
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-            Alérgenos
-          </dt>
+          <dt>Hogar</dt>
           <dd>
-            @if (user.allergens.length) {
-              <div class="allergen-list">
-                @for (a of user.allergens; track a.id) {
-                  <span class="allergen-tag">{{ a.name }}</span>
-                }
-              </div>
+            @if (resolvedHousehold()) {
+              {{ resolvedHousehold()!.name }}
+              <span class="text-soft mono-xs"> ({{ user.houseHold_id?.slice(0,8) }}…)</span>
+            } @else if (user.houseHold_id) {
+              <span class="detail-field__mono">{{ user.houseHold_id }}</span>
             } @else {
-              <span class="text-soft">Sin alérgenos registrados</span>
+              <span class="text-soft">—</span>
             }
           </dd>
         </div>
@@ -90,52 +61,69 @@
 
       <div class="detail-divider"></div>
 
+      <!-- ── Alérgenos ── -->
+      <div class="allergen-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Alérgenos
+          </h2>
+          <button class="btn-add-small" (click)="openAddAllergen()">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Añadir
+          </button>
+        </div>
+        @if (user.allergens.length) {
+          <div class="allergen-chips">
+            @for (a of user.allergens; track a.id) {
+              <span class="allergen-chip">
+                {{ a.name }}
+                <button class="allergen-chip__remove" (click)="onRemoveAllergen(a.id, a.name)" [attr.aria-label]="'Eliminar ' + a.name">
+                  <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </span>
+            }
+          </div>
+        } @else {
+          <p class="text-soft" style="font-size: var(--fs-sm); margin:0">Sin alérgenos registrados.</p>
+        }
+      </div>
+
+      <div class="detail-divider"></div>
+
       <!-- ── Cambio de rol ── -->
       <div class="role-section">
         <div class="role-section__header">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          </svg>
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           <span>Cambiar rol</span>
         </div>
-
         <div class="role-section__body">
-          <select
-            class="role-select"
-            [ngModel]="selectedRole()"
-            (ngModelChange)="selectedRole.set($event)"
-            aria-label="Seleccionar nuevo rol"
-          >
+          <select class="role-select" [ngModel]="selectedRole()" (ngModelChange)="selectedRole.set($event)" aria-label="Seleccionar nuevo rol">
             @for (role of availableRoles; track role.value) {
               <option [value]="role.value">{{ role.label }}</option>
             }
           </select>
-
-          <button
-            class="btn-save-role"
-            (click)="onSaveRole()"
-            [disabled]="!roleChanged() || isSavingRole()"
-            [class.btn-save-role--loading]="isSavingRole()"
-            aria-label="Guardar nuevo rol"
-          >
-            @if (isSavingRole()) {
-              <span class="spinner" aria-hidden="true"></span>
-              Guardando…
-            } @else {
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-              Guardar
-            }
+          <button class="btn-save-role" (click)="onSaveRole()" [disabled]="!roleChanged() || isSavingRole()" [class.btn-save-role--loading]="isSavingRole()">
+            @if (isSavingRole()) { <span class="spinner" aria-hidden="true"></span> Guardando… }
+            @else { <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Guardar }
           </button>
         </div>
-
         @if (roleChanged()) {
-          <p class="role-section__hint">
-            Rol actual: <strong>{{ formatRole(user.role) }}</strong> →
-            Nuevo: <strong>{{ formatRole(selectedRole()) }}</strong>
-          </p>
+          <p class="role-section__hint">Rol actual: <strong>{{ formatRole(user.role) }}</strong> → Nuevo: <strong>{{ formatRole(selectedRole()) }}</strong></p>
         }
+      </div>
+
+      <div class="detail-divider"></div>
+
+      <!-- ── Acciones ── -->
+      <div class="actions-row">
+        <button class="btn-edit" (click)="openEdit()">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+          Editar datos
+        </button>
       </div>
 
       <div class="detail-divider"></div>
@@ -150,14 +138,69 @@
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="3 6 5 6 21 6"/>
             <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-            <path d="M10 11v6"/><path d="M14 11v6"/>
-            <path d="M9 6V4h6v2"/>
+            <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
           </svg>
           Eliminar usuario
         </button>
       </div>
-
     </div>
   }
-
 </section>
+
+<!-- ── Modal editar usuario ── -->
+@if (showEditModal()) {
+  <div class="modal-backdrop" (click)="closeEdit()" role="dialog" aria-modal="true">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2 class="modal-title">Editar usuario</h2>
+        <button class="modal-close" (click)="closeEdit()" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </header>
+      <div class="modal-body">
+        <div class="form-field">
+          <label class="form-label" for="eName">Nombre</label>
+          <input id="eName" class="input" type="text" [(ngModel)]="formName" />
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="eEmail">Email</label>
+          <input id="eEmail" class="input" type="email" [(ngModel)]="formEmail" />
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn-cancel" (click)="closeEdit()" [disabled]="isSavingEdit()">Cancelar</button>
+        <button class="btn-save" (click)="onSaveEdit()" [disabled]="isSavingEdit() || !formName.trim() || !formEmail.trim()">
+          @if (isSavingEdit()) { <span class="spinner" aria-hidden="true"></span> Guardando… }
+          @else { Guardar cambios }
+        </button>
+      </footer>
+    </div>
+  </div>
+}
+
+<!-- ── Modal añadir alérgeno ── -->
+@if (showAllergenModal()) {
+  <div class="modal-backdrop" (click)="closeAllergenModal()" role="dialog" aria-modal="true">
+    <div class="modal-card modal-card--sm" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2 class="modal-title">Añadir alérgeno</h2>
+        <button class="modal-close" (click)="closeAllergenModal()" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </header>
+      <div class="modal-body">
+        <div class="form-field">
+          <label class="form-label" for="aName">Nombre del alérgeno</label>
+          <input id="aName" class="input" type="text" placeholder="Ej: Gluten, Lactosa…" [(ngModel)]="formAllergenName" (keydown.enter)="onSaveAllergen()" autofocus />
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn-cancel" (click)="closeAllergenModal()" [disabled]="isSavingAllergen()">Cancelar</button>
+        <button class="btn-save" (click)="onSaveAllergen()" [disabled]="isSavingAllergen() || !formAllergenName.trim()">
+          @if (isSavingAllergen()) { <span class="spinner" aria-hidden="true"></span> Guardando… }
+          @else { Añadir }
+        </button>
+      </footer>
+    </div>
+  </div>
+}

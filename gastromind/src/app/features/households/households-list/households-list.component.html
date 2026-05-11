@@ -9,7 +9,33 @@
         @else { {{ svc.households().length }} hogares registrados }
       </p>
     </div>
+    <button class="btn btn--primary" (click)="openCreate()">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nuevo hogar
+    </button>
   </header>
+
+  <!-- ── Toolbar ── -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input class="search-input" type="search" placeholder="Buscar por nombre o miembro…"
+        [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" aria-label="Buscar hogares" />
+    </div>
+    <button class="sort-btn" (click)="toggleSort()">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
+      Nombre
+      @if (sortDir() === 'asc') {
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="17 11 12 6 7 11"/><line x1="12" y1="18" x2="12" y2="6"/></svg>
+      } @else {
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="7 13 12 18 17 13"/><line x1="12" y1="6" x2="12" y2="18"/></svg>
+      }
+    </button>
+  </div>
 
   <!-- ── Error ── -->
   @if (svc.error()) {
@@ -35,33 +61,41 @@
           </div>
         }
       </div>
-    } @else if (svc.households().length === 0 && !svc.error()) {
+    } @else if (displayHouseholds().length === 0 && !svc.error()) {
       <div class="table-empty">
         <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-5h4v5h5V9.5"/>
         </svg>
-        <p>No hay hogares registrados.</p>
+        <p>
+          @if (searchQuery()) { No hay resultados para "{{ searchQuery() }}" }
+          @else { No hay hogares registrados. }
+        </p>
+        @if (!searchQuery()) {
+          <button class="btn btn--primary" (click)="openCreate()">Añadir primer hogar</button>
+        }
       </div>
     } @else {
       <table class="data-table" role="grid">
         <thead>
           <tr>
-            <th scope="col">Hogar</th>
+            <th scope="col">
+              <button class="th-sort" (click)="toggleSort()">
+                Hogar
+                @if (sortDir() === 'asc') {
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="17 11 12 6 7 11"/><line x1="12" y1="18" x2="12" y2="6"/></svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="7 13 12 18 17 13"/><line x1="12" y1="6" x2="12" y2="18"/></svg>
+                }
+              </button>
+            </th>
             <th scope="col">Miembros</th>
             <th scope="col">Dispositivos</th>
-            <th scope="col">ID</th>
             <th scope="col" class="col-actions">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          @for (h of svc.households(); track h.id) {
-            <tr
-              class="data-table__row"
-              (click)="goToDetail(h.id)"
-              tabindex="0"
-              (keydown.enter)="goToDetail(h.id)"
-              [attr.aria-label]="'Ver detalle de ' + h.name"
-            >
+          @for (h of displayHouseholds(); track h.id) {
+            <tr class="data-table__row" (click)="goToDetail(h.id)" tabindex="0" (keydown.enter)="goToDetail(h.id)" [attr.aria-label]="'Ver detalle de ' + h.name">
               <td>
                 <div class="household-cell">
                   <div class="household-cell__icon" aria-hidden="true">
@@ -75,8 +109,11 @@
               <td>
                 <div class="member-names">
                   @if (h.members.length) {
-                    @for (m of h.members; track m.id) {
+                    @for (m of h.members.slice(0, 3); track m.id) {
                       <span class="member-chip">{{ m.name }}</span>
+                    }
+                    @if (h.members.length > 3) {
+                      <span class="member-chip member-chip--more">+{{ h.members.length - 3 }}</span>
                     }
                   } @else {
                     <span class="text-soft">Sin miembros</span>
@@ -86,22 +123,19 @@
               <td>
                 @if (h.appliances.length) {
                   <div class="appliance-list">
-                    @for (a of h.appliances; track a) {
+                    @for (a of h.appliances.slice(0, 2); track a) {
                       <span class="appliance-tag">{{ applianceLabel(a) }}</span>
+                    }
+                    @if (h.appliances.length > 2) {
+                      <span class="appliance-tag appliance-tag--more">+{{ h.appliances.length - 2 }}</span>
                     }
                   </div>
                 } @else {
                   <span class="text-soft">—</span>
                 }
               </td>
-              <td class="text-mono">{{ h.id.slice(0, 8) }}…</td>
               <td class="col-actions" (click)="$event.stopPropagation()">
-                <button
-                  class="btn-icon btn-icon--danger"
-                  (click)="onDelete($event, h)"
-                  [attr.aria-label]="'Eliminar ' + h.name"
-                  title="Eliminar hogar"
-                >
+                <button class="btn-icon btn-icon--danger" (click)="onDelete($event, h)" [attr.aria-label]="'Eliminar ' + h.name" title="Eliminar hogar">
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <polyline points="3 6 5 6 21 6"/>
                     <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
@@ -118,3 +152,32 @@
   </div>
 
 </section>
+
+<!-- ── Modal crear hogar ── -->
+@if (showModal()) {
+  <div class="modal-backdrop" (click)="closeModal()" role="dialog" aria-modal="true">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2 class="modal-title">Nuevo hogar</h2>
+        <button class="modal-close" (click)="closeModal()" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </header>
+      <div class="modal-body">
+        <div class="form-field">
+          <label class="form-label" for="hName">Nombre del hogar</label>
+          <input id="hName" class="input" type="text" placeholder="Ej: Casa de la playa" [(ngModel)]="formName" (keydown.enter)="onSave()" autofocus />
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn btn--ghost" (click)="closeModal()" [disabled]="isSaving()">Cancelar</button>
+        <button class="btn btn--primary" (click)="onSave()" [disabled]="isSaving() || !formName.trim()">
+          @if (isSaving()) { <span class="spinner" aria-hidden="true"></span> Guardando… }
+          @else { Crear hogar }
+        </button>
+      </footer>
+    </div>
+  </div>
+}

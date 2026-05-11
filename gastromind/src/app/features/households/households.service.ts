@@ -34,6 +34,14 @@ export class HouseholdsService {
     });
   }
 
+  create(payload: { name: string }) {
+    return this.http.post<Household>(`${BASE}/households`, payload);
+  }
+
+  update(id: string, payload: { name: string }) {
+    return this.http.put<Household>(`${BASE}/households/${id}`, payload);
+  }
+
   delete(id: string) {
     return this.http.delete(`${BASE}/households/${id}`);
   }

@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { User } from '../../core/models/users.models';
+import { User, CreateUserPayload, UpdateUserPayload } from '../../core/models/users.models';
 
 const BASE = '/api/v1';
 
@@ -32,6 +32,14 @@ export class UsersService {
     });
   }
 
+  create(payload: CreateUserPayload) {
+    return this.http.post<User>(`${BASE}/users`, payload);
+  }
+
+  update(id: string, payload: UpdateUserPayload) {
+    return this.http.put<User>(`${BASE}/users/${id}`, payload);
+  }
+
   delete(id: string) {
     return this.http.delete(`${BASE}/users/${id}`);
   }
@@ -40,5 +48,13 @@ export class UsersService {
     return this.http.patch(`${BASE}/users/${id}/role`, null, {
       params: { newRole },
     });
+  }
+
+  addAllergen(userId: string, allergenName: string) {
+    return this.http.post(`${BASE}/users/${userId}/allergens`, { name: allergenName });
+  }
+
+  removeAllergen(allergenId: string) {
+    return this.http.delete(`${BASE}/allergens/${allergenId}`);
   }
 }

@@ -37,7 +37,7 @@
   <div class="dashboard__kpi-grid">
 
     <app-kpi-card
-      title="Usuarios Totales"
+      title="Usuarios"
       [value]="svc.stats().totalUsers"
       icon="users"
       color="green"
@@ -46,21 +46,48 @@
     />
 
     <app-kpi-card
-      title="Households Totales"
+      title="Hogares"
       [value]="svc.stats().totalHouseholds"
       icon="home"
       color="orange"
       [loading]="svc.isLoading()"
-      description="Hogares activos con nevera vinculada"
+      description="Hogares activos con miembros"
     />
 
     <app-kpi-card
-      title="Tickets Totales"
+      title="Tickets"
       [value]="svc.stats().totalTickets"
       icon="ticket"
       color="blue"
       [loading]="svc.isLoading()"
-      description="Incidencias y solicitudes registradas"
+      description="Tickets de compra registrados"
+    />
+
+    <app-kpi-card
+      title="Neveras"
+      [value]="svc.stats().totalFridges"
+      icon="fridge"
+      color="purple"
+      [loading]="svc.isLoading()"
+      description="Neveras vinculadas a hogares"
+    />
+
+    <app-kpi-card
+      title="Compras habituales"
+      [value]="svc.stats().totalUsualPurchases"
+      icon="shopping"
+      color="teal"
+      [loading]="svc.isLoading()"
+      description="Productos de compra recurrente"
+    />
+
+    <app-kpi-card
+      title="Unidades"
+      [value]="svc.stats().totalUnits"
+      icon="units"
+      color="rose"
+      [loading]="svc.isLoading()"
+      description="Unidades de medida configuradas"
     />
 
   </div>
@@ -87,7 +114,7 @@
           <path d="M3 10.5 12 3l9 7.5"/>
           <path d="M5 9.5V21h5v-5h4v5h5V9.5"/>
         </svg>
-        <span>Ver Households</span>
+        <span>Ver Hogares</span>
       </a>
 
       <a routerLink="/tickets" class="quick-card">
@@ -108,6 +135,35 @@
           <path d="M9 14v3"/>
         </svg>
         <span>Gestionar Neveras</span>
+      </a>
+
+      <a routerLink="/usual-purchases" class="quick-card">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+        <span>Compras Habituales</span>
+      </a>
+
+      <a routerLink="/units" class="quick-card">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M2 12h20"/>
+          <path d="M7 5v14"/>
+          <path d="M12 3v18"/>
+          <path d="M17 7v10"/>
+        </svg>
+        <span>Unidades</span>
+      </a>
+
+      <a routerLink="/user-favorites" class="quick-card">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+        <span>Favoritos</span>
       </a>
 
     </div>

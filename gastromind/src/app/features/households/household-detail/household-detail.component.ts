@@ -33,6 +33,11 @@ export class HouseholdDetailComponent implements OnInit {
   /** IDs de miembros con una acción en curso */
   readonly busyMembers        = signal<Set<string>>(new Set());
 
+  /* ── Edit modal ── */
+  readonly showEditModal = signal(false);
+  readonly isSavingEdit  = signal(false);
+  formName = '';
+
   /** Dispositivos disponibles que el hogar aún no tiene */
   readonly availableAppliances = computed(() => {
     const current = this.svc.selectedHousehold()?.appliances ?? [];
@@ -72,6 +77,34 @@ export class HouseholdDetailComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/households']);
+  }
+
+  openEdit(): void {
+    const h = this.svc.selectedHousehold();
+    if (!h) return;
+    this.formName = h.name;
+    this.showEditModal.set(true);
+  }
+
+  closeEdit(): void { this.showEditModal.set(false); }
+
+  onSaveEdit(): void {
+    if (!this.formName.trim()) return;
+    const h = this.svc.selectedHousehold();
+    if (!h) return;
+    this.isSavingEdit.set(true);
+    this.svc.update(h.id, { name: this.formName.trim() }).subscribe({
+      next: () => {
+        this.toast.success('Hogar actualizado correctamente.');
+        this.svc.loadById(h.id);
+        this.closeEdit();
+        this.isSavingEdit.set(false);
+      },
+      error: () => {
+        this.toast.error('No se pudo actualizar el hogar.');
+        this.isSavingEdit.set(false);
+      },
+    });
   }
 
   applianceLabel(key: string): string {

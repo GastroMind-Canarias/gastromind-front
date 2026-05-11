@@ -1,8 +1,9 @@
-import { Component, effect, inject, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UsersService } from '../users.service';
+import { HouseholdsService } from '../../households/households.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
 
@@ -25,6 +26,7 @@ export const AVAILABLE_ROLES: { value: UserRole; label: string }[] = [
 })
 export class UserDetailComponent implements OnInit {
   protected readonly svc      = inject(UsersService);
+  protected readonly houseSvc = inject(HouseholdsService);
   private readonly route      = inject(ActivatedRoute);
   private readonly router     = inject(Router);
   private readonly toast      = inject(ToastService);
@@ -34,6 +36,24 @@ export class UserDetailComponent implements OnInit {
   readonly selectedRole   = signal<UserRole | ''>('');
   readonly isSavingRole   = signal(false);
 
+  /* ── Household resolved ── */
+  readonly resolvedHousehold = computed(() => {
+    const u = this.svc.selectedUser();
+    if (!u) return null;
+    return this.houseSvc.households().find(h => h.id === u.houseHold_id) ?? null;
+  });
+
+  /* ── Edit modal ── */
+  readonly showEditModal = signal(false);
+  readonly isSavingEdit  = signal(false);
+  formName  = '';
+  formEmail = '';
+
+  /* ── Allergen modal ── */
+  readonly showAllergenModal = signal(false);
+  readonly isSavingAllergen  = signal(false);
+  formAllergenName = '';
+
   constructor() {
     effect(() => {
       const user = this.svc.selectedUser();
@@ -41,23 +61,19 @@ export class UserDetailComponent implements OnInit {
     });
   }
 
+  private get userId(): string {
+    return this.route.snapshot.paramMap.get('id')!;
+  }
+
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id')!;
-    this.svc.loadById(id);
+    this.svc.loadById(this.userId);
+    this.houseSvc.loadAll();
   }
 
-  onUserLoaded(): void {
-    const user = this.svc.selectedUser();
-    if (user) this.selectedRole.set(user.role as UserRole);
-  }
-
-  goBack(): void {
-    this.router.navigate(['/users']);
-  }
+  goBack(): void { this.router.navigate(['/users']); }
 
   formatRole(role: string): string {
-    const found = AVAILABLE_ROLES.find(r => r.value === role);
-    return found ? found.label : role.replace('ROLE_', '');
+    return AVAILABLE_ROLES.find(r => r.value === role)?.label ?? role.replace('ROLE_', '');
   }
 
   initials(name: string): string {
@@ -73,41 +89,71 @@ export class UserDetailComponent implements OnInit {
     const user = this.svc.selectedUser();
     const newRole = this.selectedRole();
     if (!user || !newRole || newRole === user.role) return;
-
     this.isSavingRole.set(true);
     this.svc.changeRole(user.id, newRole).subscribe({
-      next: () => {
-        this.svc.loadById(user.id);
-        this.toast.success(`Rol de "${user.name}" actualizado a ${this.formatRole(newRole)}.`);
-        this.isSavingRole.set(false);
-      },
-      error: () => {
-        this.toast.error('No se pudo cambiar el rol. Inténtalo de nuevo.');
-        this.isSavingRole.set(false);
-      },
+      next: () => { this.svc.loadById(user.id); this.toast.success(`Rol actualizado a ${this.formatRole(newRole)}.`); this.isSavingRole.set(false); },
+      error: () => { this.toast.error('No se pudo cambiar el rol.'); this.isSavingRole.set(false); },
     });
   }
 
+  /* ── Edit user ── */
+  openEdit(): void {
+    const u = this.svc.selectedUser()!;
+    this.formName  = u.name;
+    this.formEmail = u.email;
+    this.showEditModal.set(true);
+  }
+
+  closeEdit(): void { this.showEditModal.set(false); }
+
+  onSaveEdit(): void {
+    if (!this.formName.trim() || !this.formEmail.trim()) return;
+    this.isSavingEdit.set(true);
+    this.svc.update(this.userId, { name: this.formName.trim(), email: this.formEmail.trim() }).subscribe({
+      next: () => { this.toast.success('Usuario actualizado.'); this.svc.loadById(this.userId); this.closeEdit(); this.isSavingEdit.set(false); },
+      error: () => { this.toast.error('No se pudo actualizar el usuario.'); this.isSavingEdit.set(false); },
+    });
+  }
+
+  /* ── Allergens ── */
+  openAddAllergen(): void { this.formAllergenName = ''; this.showAllergenModal.set(true); }
+  closeAllergenModal(): void { this.showAllergenModal.set(false); }
+
+  onSaveAllergen(): void {
+    if (!this.formAllergenName.trim()) return;
+    this.isSavingAllergen.set(true);
+    this.svc.addAllergen(this.userId, this.formAllergenName.trim()).subscribe({
+      next: () => { this.toast.success('Alérgeno añadido.'); this.svc.loadById(this.userId); this.closeAllergenModal(); this.isSavingAllergen.set(false); },
+      error: () => { this.toast.error('No se pudo añadir el alérgeno.'); this.isSavingAllergen.set(false); },
+    });
+  }
+
+  async onRemoveAllergen(allergenId: string, allergenName: string): Promise<void> {
+    const confirmed = await this.confirm.confirm({
+      title:      '¿Eliminar alérgeno?',
+      message:    `Vas a eliminar "${allergenName}" de este usuario.`,
+      entityName: allergenName,
+    });
+    if (!confirmed) return;
+    this.svc.removeAllergen(allergenId).subscribe({
+      next:  () => { this.toast.success('Alérgeno eliminado.'); this.svc.loadById(this.userId); },
+      error: () => { this.toast.error('No se pudo eliminar el alérgeno.'); },
+    });
+  }
+
+  /* ── Delete user ── */
   async onDelete(): Promise<void> {
     const user = this.svc.selectedUser();
     if (!user) return;
-
     const confirmed = await this.confirm.confirm({
-      title: `¿Eliminar usuario?`,
-      message: `Vas a eliminar a ${user.name}. ¿Deseas continuar?`,
+      title:      '¿Eliminar usuario?',
+      message:    `Vas a eliminar a ${user.name}. ¿Deseas continuar?`,
       entityName: user.email,
     });
-
     if (!confirmed) return;
-
     this.svc.delete(user.id).subscribe({
-      next: () => {
-        this.toast.success(`Usuario "${user.name}" eliminado correctamente.`);
-        this.router.navigate(['/users']);
-      },
-      error: () => {
-        this.toast.error(`No se pudo eliminar a "${user.name}". Inténtalo de nuevo.`);
-      },
+      next:  () => { this.toast.success(`Usuario "${user.name}" eliminado.`); this.router.navigate(['/users']); },
+      error: () => { this.toast.error(`No se pudo eliminar a "${user.name}".`); },
     });
   }
 }

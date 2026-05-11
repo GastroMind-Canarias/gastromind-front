@@ -45,10 +45,27 @@
   color: #3B82F6;
 }
 
+/* Nuevos colores */
+.kpi-card--purple .kpi-card__icon {
+  background: color-mix(in srgb, #8B5CF6 12%, transparent);
+  color: #7C3AED;
+}
+.kpi-card--teal .kpi-card__icon {
+  background: color-mix(in srgb, #14B8A6 12%, transparent);
+  color: #0F766E;
+}
+.kpi-card--rose .kpi-card__icon {
+  background: color-mix(in srgb, #F43F5E 12%, transparent);
+  color: #BE123C;
+}
+
 /* Acento izquierdo por variante */
 .kpi-card--green  { border-left: 4px solid var(--color-primary-400); }
 .kpi-card--orange { border-left: 4px solid var(--color-accent-500); }
 .kpi-card--blue   { border-left: 4px solid #3B82F6; }
+.kpi-card--purple { border-left: 4px solid #8B5CF6; }
+.kpi-card--teal   { border-left: 4px solid #14B8A6; }
+.kpi-card--rose   { border-left: 4px solid #F43F5E; }
 
 /* ── Cuerpo ── */
 .kpi-card__body {

@@ -479,6 +479,44 @@
   100% { background-position: -200% 0; }
 }
 
+/* ── Hero title row ── */
+.detail-hero__info { display: flex; flex-direction: column; gap: 4px; }
+.detail-hero__title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.btn-edit-hero {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 12px; border-radius: var(--radius-pill);
+  font-size: var(--fs-xs); font-weight: 600;
+  color: var(--color-primary-600); border: 1px solid var(--color-primary-300);
+  background: transparent; cursor: pointer; transition: background var(--t-fast);
+}
+.btn-edit-hero:hover { background: var(--color-primary-50); }
+
+/* ── Modal ── */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: grid; place-items: center; z-index: 200; padding: 24px; }
+.modal-card { background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); border: 1px solid var(--color-border); width: 100%; max-width: 420px; display: flex; flex-direction: column; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0; }
+.modal-title { font-size: var(--fs-lg); font-weight: 700; color: var(--color-text); margin: 0; }
+.modal-close { display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-sm); color: var(--color-text-muted); transition: background var(--t-fast); }
+.modal-close:hover { background: var(--color-bg); }
+.modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.modal-footer { padding: 16px 24px 20px; display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--color-border); }
+
+/* ── Form (inside modal) ── */
+.form-field { display: flex; flex-direction: column; gap: 5px; }
+.form-label { font-size: var(--fs-xs); font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.input {
+  width: 100%; padding: 9px 12px;
+  border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  background: var(--color-bg); color: var(--color-text);
+  font-size: var(--fs-sm); box-sizing: border-box; transition: border-color var(--t-fast);
+}
+.input:focus { outline: none; border-color: var(--color-primary-400); }
+
+.btn--ghost { background: transparent; color: var(--color-text-muted); border: 1px solid var(--color-border); }
+.btn--ghost:hover:not(:disabled) { background: var(--color-bg); }
+.btn--ghost:disabled { opacity: 0.5; cursor: not-allowed; }
+
 /* ── Responsive ── */
 @media (max-width: 640px) {
   .detail-card { padding: 20px; }
