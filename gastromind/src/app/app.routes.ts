@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  // Zona pública
+  // ── Zona pública ──────────────────────────────────────────────────────────
   {
     path: 'login',
     loadComponent: () =>
@@ -11,10 +11,16 @@ export const routes: Routes = [
       ),
   },
 
-  // Zona privada — protegida por authGuard
+  // ── Zona privada ──────────────────────────────────────────────────────────
+  // canActivate  → protege la primera carga del shell.
+  // canActivateChild → re-ejecuta el guard en CADA navegación entre hijos,
+  //                    garantizando que un token expirado sea detectado.
+  // data.reuse   → NoReuseStrategy reutiliza el shell pero NO los hijos.
   {
     path: '',
-    canActivate: [authGuard],
+    canActivate:      [authGuard],
+    canActivateChild: [authGuard],
+    data: { reuse: true },
     loadComponent: () =>
       import('./layout/main-layout/layout.component').then(
         (m) => m.LayoutComponent
@@ -56,6 +62,6 @@ export const routes: Routes = [
     ],
   },
 
-  // Fallback
+  // ── Fallback ──────────────────────────────────────────────────────────────
   { path: '**', redirectTo: 'dashboard' },
 ];
