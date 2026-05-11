@@ -48,10 +48,6 @@ export const routes: Routes = [
         loadChildren: () => import('./features/tickets/tickets.routes'),
       },
       {
-        path: 'user-favorites',
-        loadChildren: () => import('./features/user-favorites/user-favorites.routes'),
-      },
-      {
         path: 'units',
         loadChildren: () => import('./features/units/units.routes'),
       },

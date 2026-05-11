@@ -28,7 +28,6 @@ export class SidebarComponent {
     { label: 'Households',       route: '/households',       icon: 'home'      },
     { label: 'Fridges',          route: '/fridges',          icon: 'fridge'    },
     { label: 'Tickets',          route: '/tickets',          icon: 'ticket'    },
-    { label: 'User Favorites',   route: '/user-favorites',   icon: 'favorites' },
     { label: 'Units',            route: '/units',            icon: 'units'     },
     { label: 'Usual Purchases',  route: '/usual-purchases',  icon: 'shopping'  },
   ]);
