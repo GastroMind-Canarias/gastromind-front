@@ -32,6 +32,8 @@ export class SidebarComponent {
     { label: 'Usual Purchases',  route: '/usual-purchases',  icon: 'shopping'  },
     { label: 'User Favorites',   route: '/user-favorites',   icon: 'favorites' },
     { label: 'Categorías',       route: '/categories',       icon: 'category'  },
+    { label: 'Tiendas',          route: '/stores',           icon: 'store'     },
+    { label: 'Productos',        route: '/products',         icon: 'product'   },
   ]);
 
   readonly asideClass = computed(() => ({

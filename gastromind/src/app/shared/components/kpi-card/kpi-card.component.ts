@@ -1,8 +1,8 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-export type KpiCardIcon = 'users' | 'home' | 'ticket' | 'grid' | 'fridge' | 'shopping' | 'units' | 'favorites' | 'category';
-export type KpiCardColor = 'green' | 'orange' | 'blue' | 'purple' | 'teal' | 'rose' | 'amber';
+export type KpiCardIcon = 'users' | 'home' | 'ticket' | 'grid' | 'fridge' | 'shopping' | 'units' | 'favorites' | 'category' | 'store' | 'product';
+export type KpiCardColor = 'green' | 'orange' | 'blue' | 'purple' | 'teal' | 'rose' | 'amber' | 'indigo' | 'cyan';
 
 /**
  * KpiCardComponent — tarjeta de métrica reutilizable.

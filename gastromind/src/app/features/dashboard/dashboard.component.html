@@ -108,6 +108,24 @@
       description="Categorías de productos"
     />
 
+    <app-kpi-card
+      title="Tiendas"
+      [value]="svc.stats().totalStores"
+      icon="store"
+      color="indigo"
+      [loading]="svc.isLoading()"
+      description="Tiendas registradas"
+    />
+
+    <app-kpi-card
+      title="Productos"
+      [value]="svc.stats().totalProducts"
+      icon="product"
+      color="cyan"
+      [loading]="svc.isLoading()"
+      description="Productos del catálogo"
+    />
+
   </div>
 
   <!-- ── Sección de accesos rápidos ───────────────────────────────────── -->
@@ -190,6 +208,26 @@
           <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
         </svg>
         <span>Categorías</span>
+      </a>
+
+      <a routerLink="/stores" class="quick-card">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/>
+          <path d="M3 9l2.5-5h13L21 9"/>
+          <path d="M12 9v13"/>
+        </svg>
+        <span>Tiendas</span>
+      </a>
+
+      <a routerLink="/products" class="quick-card">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+          <line x1="12" y1="22.08" x2="12" y2="12"/>
+        </svg>
+        <span>Productos</span>
       </a>
 
     </div>

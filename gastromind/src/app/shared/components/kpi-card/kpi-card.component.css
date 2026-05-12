@@ -62,6 +62,14 @@
   background: color-mix(in srgb, #F59E0B 12%, transparent);
   color: #B45309;
 }
+.kpi-card--indigo .kpi-card__icon {
+  background: color-mix(in srgb, #6366F1 12%, transparent);
+  color: #4338CA;
+}
+.kpi-card--cyan .kpi-card__icon {
+  background: color-mix(in srgb, #06B6D4 12%, transparent);
+  color: #0E7490;
+}
 
 /* Acento izquierdo por variante */
 .kpi-card--green  { border-left: 4px solid var(--color-primary-400); }
@@ -71,6 +79,8 @@
 .kpi-card--teal   { border-left: 4px solid #14B8A6; }
 .kpi-card--rose   { border-left: 4px solid #F43F5E; }
 .kpi-card--amber  { border-left: 4px solid #F59E0B; }
+.kpi-card--indigo { border-left: 4px solid #6366F1; }
+.kpi-card--cyan   { border-left: 4px solid #06B6D4; }
 
 /* ── Cuerpo ── */
 .kpi-card__body {
