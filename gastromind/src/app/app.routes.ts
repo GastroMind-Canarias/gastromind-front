@@ -56,6 +56,14 @@ export const routes: Routes = [
         path: 'usual-purchases',
         loadChildren: () => import('./features/usual-purchases/usual-purchases.routes'),
       },
+      {
+        path: 'user-favorites',
+        loadChildren: () => import('./features/user-favorites/user-favorites.routes'),
+      },
+      {
+        path: 'categories',
+        loadChildren: () => import('./features/categories/categories.routes'),
+      },
     ],
   },
 

@@ -34,4 +34,6 @@ export interface DashboardStats {
   totalFridges: number;
   totalUsualPurchases: number;
   totalUnits: number;
+  totalFavorites: number;
+  totalCategories: number;
 }

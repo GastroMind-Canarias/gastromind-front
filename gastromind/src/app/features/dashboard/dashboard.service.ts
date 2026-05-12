@@ -19,6 +19,8 @@ export class DashboardService {
     totalFridges:        0,
     totalUsualPurchases: 0,
     totalUnits:          0,
+    totalFavorites:      0,
+    totalCategories:     0,
   });
 
   readonly stats = this._stats.asReadonly();
@@ -26,7 +28,8 @@ export class DashboardService {
   readonly hasData = computed(() => {
     const s = this._stats();
     return s.totalUsers > 0 || s.totalHouseholds > 0 || s.totalTickets > 0
-        || s.totalFridges > 0 || s.totalUsualPurchases > 0 || s.totalUnits > 0;
+        || s.totalFridges > 0 || s.totalUsualPurchases > 0 || s.totalUnits > 0
+        || s.totalFavorites > 0 || s.totalCategories > 0;
   });
 
   loadStats(): void {
@@ -40,8 +43,10 @@ export class DashboardService {
       fridges:         this.http.get<unknown[]>(`${BASE_URL}/fridges`),
       usualPurchases:  this.http.get<unknown[]>(`${BASE_URL}/usual-purchases`),
       units:           this.http.get<unknown[]>(`${BASE_URL}/units`),
+      favorites:       this.http.get<unknown[]>(`${BASE_URL}/user-favorites`),
+      categories:      this.http.get<unknown[]>(`${BASE_URL}/categories`),
     }).subscribe({
-      next: ({ users, households, tickets, fridges, usualPurchases, units }) => {
+      next: ({ users, households, tickets, fridges, usualPurchases, units, favorites, categories }) => {
         this._stats.set({
           totalUsers:          Array.isArray(users)          ? users.length          : 0,
           totalHouseholds:     Array.isArray(households)     ? households.length     : 0,
@@ -49,6 +54,8 @@ export class DashboardService {
           totalFridges:        Array.isArray(fridges)        ? fridges.length        : 0,
           totalUsualPurchases: Array.isArray(usualPurchases) ? usualPurchases.length : 0,
           totalUnits:          Array.isArray(units)          ? units.length          : 0,
+          totalFavorites:      Array.isArray(favorites)      ? favorites.length      : 0,
+          totalCategories:     Array.isArray(categories)     ? categories.length     : 0,
         });
         this.isLoading.set(false);
       },

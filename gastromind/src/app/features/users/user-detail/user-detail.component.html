@@ -49,7 +49,7 @@
           <dd>
             @if (resolvedHousehold()) {
               {{ resolvedHousehold()!.name }}
-              <span class="text-soft mono-xs"> ({{ user.houseHold_id?.slice(0,8) }}…)</span>
+              <span class="text-soft mono-xs"> ({{ user.houseHold_id.slice(0,8) }}…)</span>
             } @else if (user.houseHold_id) {
               <span class="detail-field__mono">{{ user.houseHold_id }}</span>
             } @else {
