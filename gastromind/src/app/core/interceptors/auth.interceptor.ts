@@ -1,8 +1,11 @@
-import { HttpInterceptorFn } from '@angular/common/http';
-import { authToken } from '../store/auth.store';
+import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { catchError, throwError } from 'rxjs';
+import { authToken, clearAuth } from '../store/auth.store';
 
 /**
- * authInterceptor — inyección centralizada del JWT.
+ * authInterceptor — inyección centralizada del JWT y gestión de sesión.
  *
  * El token se envía como header estándar:
  *   Authorization: Bearer <token>
@@ -14,18 +17,37 @@ import { authToken } from '../store/auth.store';
  *     a /users/me durante el login, antes de que el token esté en el store)
  *     → no sobreescribir.
  *  3. En cualquier otro caso → clona la request e inyecta el header.
+ *  4. Si el servidor responde 401 → token inválido o caducado: limpia el
+ *     store y redirige al login automáticamente.
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = authToken();
+  const router = inject(Router);
+  const token  = authToken();
 
   // Sin token o la request ya trae su propio Authorization
   if (!token || req.headers.has('Authorization')) {
-    return next(req);
+    return next(req).pipe(
+      catchError((err: HttpErrorResponse) => {
+        if (err.status === 401) {
+          clearAuth();
+          router.navigate(['/login']);
+        }
+        return throwError(() => err);
+      }),
+    );
   }
 
   const authReq = req.clone({
     headers: req.headers.set('Authorization', `Bearer ${token}`),
   });
 
-  return next(authReq);
+  return next(authReq).pipe(
+    catchError((err: HttpErrorResponse) => {
+      if (err.status === 401) {
+        clearAuth();
+        router.navigate(['/login']);
+      }
+      return throwError(() => err);
+    }),
+  );
 };
