@@ -1,12 +1,12 @@
 {
   "/api": {
-    "target": "http://100.97.191.102:8081",
+    "target": "http://192.168.88.10:8081",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug"
   },
   "/prometheus": {
-    "target": "http://100.97.191.102:9090",
+    "target": "http://192.168.88.10:9090",
     "secure": false,
     "changeOrigin": true,
     "pathRewrite": { "^/prometheus": "" },
