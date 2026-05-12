@@ -6,6 +6,9 @@
       <h1 class="fridges__title">Neveras</h1>
       <p class="fridges__subtitle">
         @if (svc.isLoading()) { Cargando… }
+        @else if (searchQuery() || filterHouseholdId()) {
+          {{ displayFridges().length }} de {{ svc.fridges().length }} neveras
+        }
         @else { {{ svc.fridges().length }} neveras registradas }
       </p>
     </div>
@@ -16,6 +19,44 @@
       Nueva nevera
     </button>
   </header>
+
+  <!-- ── Toolbar: búsqueda + filtro ── -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input
+        class="search-input"
+        type="search"
+        placeholder="Buscar por hogar o ID…"
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+        aria-label="Buscar neveras"
+      />
+    </div>
+
+    <select
+      class="filter-select"
+      [value]="filterHouseholdId()"
+      (change)="filterHouseholdId.set($any($event.target).value)"
+      aria-label="Filtrar por hogar"
+    >
+      <option value="">Todos los hogares</option>
+      @for (h of householdOptions(); track h.id) {
+        <option [value]="h.id">{{ h.name }}</option>
+      }
+    </select>
+
+    @if (searchQuery() || filterHouseholdId()) {
+      <button class="btn-clear" (click)="searchQuery.set(''); filterHouseholdId.set('')" aria-label="Limpiar filtros">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+        Limpiar
+      </button>
+    }
+  </div>
 
   <!-- ── Error ── -->
   @if (svc.error()) {
@@ -40,14 +81,21 @@
           </div>
         }
       </div>
-    } @else if (svc.fridges().length === 0 && !svc.error()) {
+    } @else if (displayFridges().length === 0 && !svc.error()) {
       <div class="table-empty">
         <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="2" y="3" width="20" height="21" rx="2"/>
-          <path d="M16 3v4M8 3v4M2 11h20M8 15h.01M12 15h.01M16 15h.01M8 19h.01M12 19h.01M16 19h.01"/>
+          <rect x="5" y="2" width="14" height="20" rx="3"/>
+          <path d="M5 10h14M9 6v2M9 14v3"/>
         </svg>
-        <p>No hay neveras registradas.</p>
-        <button class="btn btn--primary" (click)="openCreate()">Añadir primera nevera</button>
+        <p>
+          @if (searchQuery() || filterHouseholdId()) { No hay neveras que coincidan con los filtros. }
+          @else { No hay neveras registradas. }
+        </p>
+        @if (!searchQuery() && !filterHouseholdId()) {
+          <button class="btn btn--primary" (click)="openCreate()">Añadir primera nevera</button>
+        } @else {
+          <button class="btn btn--ghost" (click)="searchQuery.set(''); filterHouseholdId.set('')">Limpiar filtros</button>
+        }
       </div>
     } @else {
       <table class="data-table" role="grid">
@@ -60,7 +108,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (f of svc.fridges(); track f.id) {
+          @for (f of displayFridges(); track f.id) {
             <tr
               class="data-table__row"
               (click)="goToDetail(f.id)"

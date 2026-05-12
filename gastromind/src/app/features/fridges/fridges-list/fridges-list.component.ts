@@ -24,6 +24,24 @@ export class FridgesListComponent implements OnInit {
   private readonly toast       = inject(ToastService);
   private readonly confirm     = inject(ConfirmDialogService);
 
+  /* ── Search / filter ── */
+  readonly searchQuery      = signal('');
+  readonly filterHouseholdId = signal('');
+
+  readonly displayFridges = computed(() => {
+    const query     = this.searchQuery().trim().toLowerCase();
+    const filterHid = this.filterHouseholdId();
+    const households = this.houseSvc.households();
+
+    return this.svc.fridges().filter(f => {
+      const houseName = households.find(h => h.id === f.household_id)?.name ?? '';
+
+      if (filterHid && f.household_id !== filterHid) return false;
+      if (query && !houseName.toLowerCase().includes(query) && !f.id.toLowerCase().includes(query)) return false;
+      return true;
+    });
+  });
+
   /* ── Modal state ── */
   readonly showModal   = signal(false);
   readonly modalMode   = signal<ModalMode>('create');
@@ -33,7 +51,6 @@ export class FridgesListComponent implements OnInit {
   /* ── Form fields ── */
   formHouseholdId = '';
 
-  /* ── Computed: households not yet assigned to a fridge ── */
   readonly householdOptions = computed(() => this.houseSvc.households());
 
   ngOnInit(): void {

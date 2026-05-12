@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FridgesService } from '../fridges.service';
 import { HouseholdsService } from '../../households/households.service';
+import { ProductsService } from '../../products/products.service';
+import { CategoriesService } from '../../categories/categories.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
 import {
@@ -24,12 +26,14 @@ type FilterMode    = 'all' | 'expiring' | 'category';
   styleUrl: './fridge-detail.component.css',
 })
 export class FridgeDetailComponent implements OnInit {
-  protected readonly svc      = inject(FridgesService);
-  protected readonly houseSvc = inject(HouseholdsService);
-  private readonly route      = inject(ActivatedRoute);
-  private readonly router     = inject(Router);
-  private readonly toast      = inject(ToastService);
-  private readonly confirm    = inject(ConfirmDialogService);
+  protected readonly svc          = inject(FridgesService);
+  protected readonly houseSvc     = inject(HouseholdsService);
+  protected readonly productsSvc  = inject(ProductsService);
+  protected readonly categoriesSvc = inject(CategoriesService);
+  private readonly route          = inject(ActivatedRoute);
+  private readonly router         = inject(Router);
+  private readonly toast          = inject(ToastService);
+  private readonly confirm        = inject(ConfirmDialogService);
 
   /* ── Constants for template ── */
   readonly statusLabels    = FRIDGE_ITEM_STATUS_LABELS;
@@ -82,6 +86,8 @@ export class FridgeDetailComponent implements OnInit {
     this.svc.loadById(this.fridgeId);
     this.svc.loadItems(this.fridgeId);
     this.houseSvc.loadAll();
+    this.productsSvc.loadAll();
+    this.categoriesSvc.loadAll();
   }
 
   /* ── Navigation ── */
@@ -91,6 +97,10 @@ export class FridgeDetailComponent implements OnInit {
 
   shortId(id: string): string {
     return id.slice(0, 8) + '…';
+  }
+
+  productName(productId: string): string {
+    return this.productsSvc.products().find(p => p.id === productId)?.name ?? this.shortId(productId);
   }
 
   /* ── Filter ── */

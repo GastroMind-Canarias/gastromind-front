@@ -6,16 +6,13 @@ import { CommonModule } from '@angular/common';
 import {
   Chart,
   LineController, LineElement, PointElement, LinearScale, CategoryScale,
-  BarController,  BarElement,
   DoughnutController, ArcElement,
   Tooltip, Legend, Filler,
 } from 'chart.js';
-import { MetricsService, CHART_COLORS } from '../metrics.service';
+import { MetricsService, CHART_COLORS, TimeSeries } from '../metrics.service';
 
-// Registrar solo los módulos necesarios (tree-shakeable)
 Chart.register(
   LineController, LineElement, PointElement, LinearScale, CategoryScale,
-  BarController,  BarElement,
   DoughnutController, ArcElement,
   Tooltip, Legend, Filler,
 );
@@ -30,119 +27,75 @@ Chart.register(
 export class MetricsDashboardComponent implements OnInit, OnDestroy {
   protected svc = inject(MetricsService);
 
-  // static: true → los canvas están SIEMPRE en el DOM (no dentro de @if)
-  // así ViewChild los encuentra desde el primer render y afterNextRender funciona
-  @ViewChild('errorRateCanvas', { static: true }) errorRateCanvasRef!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('endpointsCanvas', { static: true }) endpointsCanvasRef!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('memoryCanvas',    { static: true }) memoryCanvasRef!:    ElementRef<HTMLCanvasElement>;
+  // Canvases siempre en el DOM → static: true + afterNextRender
+  @ViewChild('trafficCanvas', { static: true }) trafficCanvasRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('memoryCanvas',  { static: true }) memoryCanvasRef!:  ElementRef<HTMLCanvasElement>;
+  @ViewChild('cpuCanvas',     { static: true }) cpuCanvasRef!:     ElementRef<HTMLCanvasElement>;
+  @ViewChild('latencyCanvas', { static: true }) latencyCanvasRef!: ElementRef<HTMLCanvasElement>;
 
-  private errorRateChart?: Chart;
-  private endpointsChart?: Chart;
-  private memoryChart?:    Chart;
+  private trafficChart?: Chart;
+  private memoryChart?:  Chart;
+  private cpuChart?:     Chart;
+  private latencyChart?: Chart;
 
   constructor() {
-    // afterNextRender garantiza que los canvas están pintados en el DOM
     afterNextRender(() => this.buildCharts());
 
-    // effect sincroniza datos → charts cada vez que cambian las señales
     effect(() => {
-      const errData = this.svc.errorRate();
-      const epData  = this.svc.topEndpoints();
-      const memData = this.svc.memory();
-      if (this.errorRateChart || this.endpointsChart || this.memoryChart) {
-        this.syncCharts(errData, epData, memData);
+      void this.svc.httpTraffic();
+      void this.svc.cpuUsage();
+      void this.svc.httpLatency();
+      void this.svc.memory();
+      if (this.trafficChart) {
+        this.syncCharts();
       }
     });
   }
 
-  ngOnInit(): void {
-    this.svc.loadAll();
-  }
+  ngOnInit(): void { this.svc.loadAll(); }
 
   ngOnDestroy(): void {
-    this.errorRateChart?.destroy();
-    this.endpointsChart?.destroy();
+    this.trafficChart?.destroy();
     this.memoryChart?.destroy();
+    this.cpuChart?.destroy();
+    this.latencyChart?.destroy();
   }
 
   reload(): void {
     this.svc.loadAll();
   }
 
-  // ── Inicialización de charts ──────────────────────────────────────────────
+  // ── Construcción de charts ────────────────────────────────────────────────
 
   private buildCharts(): void {
-    // 1. Tráfico HTTP — line chart
-    this.errorRateChart = new Chart(this.errorRateCanvasRef.nativeElement, {
+    // 1. Tráfico HTTP por código de estado
+    this.trafficChart = new Chart(this.trafficCanvasRef.nativeElement, {
       type: 'line',
       data: { labels: [], datasets: [] },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
+        responsive: true, maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
         plugins: {
           legend: { position: 'top', labels: { color: '#94a3b8', boxWidth: 12, padding: 16 } },
-          tooltip: { callbacks: {
-            label: ctx => ` ${ctx.dataset.label}: ${(ctx.parsed.y as number).toFixed(4)} req/s`,
-          }},
+          tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${(ctx.parsed.y as number).toFixed(4)} req/s` } },
         },
         scales: {
           x: { ticks: { color: '#94a3b8', maxTicksLimit: 12 }, grid: { color: 'rgba(148,163,184,0.12)' } },
-          y: {
-            ticks: { color: '#94a3b8' },
-            grid:  { color: 'rgba(148,163,184,0.12)' },
-            title: { display: true, text: 'req / s', color: '#94a3b8' },
-          },
+          y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.12)' },
+               title: { display: true, text: 'req / s', color: '#94a3b8' } },
         },
       },
     });
 
-    // 2. Top endpoints — horizontal bar chart
-    this.endpointsChart = new Chart(this.endpointsCanvasRef.nativeElement, {
-      type: 'bar',
-      data: {
-        labels: [],
-        datasets: [{
-          label: 'Peticiones (10 min)',
-          data: [],
-          backgroundColor: CHART_COLORS.blueBg,
-          borderColor:     CHART_COLORS.blue,
-          borderWidth: 1.5,
-          borderRadius: 4,
-        }],
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} peticiones` } },
-        },
-        scales: {
-          x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.12)' } },
-          y: { ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { display: false } },
-        },
-      },
-    });
-
-    // 3. JVM Memory — doughnut
+    // 2. Memoria JVM heap (doughnut)
     this.memoryChart = new Chart(this.memoryCanvasRef.nativeElement, {
       type: 'doughnut',
       data: {
         labels: ['Usada', 'Libre'],
-        datasets: [{
-          data: [0, 1],
-          backgroundColor: [CHART_COLORS.red, CHART_COLORS.muted],
-          borderColor:     ['transparent', 'transparent'],
-          borderWidth: 0,
-          hoverOffset: 6,
-        }],
+        datasets: [{ data: [0, 1], backgroundColor: [CHART_COLORS.red, CHART_COLORS.muted], borderWidth: 0, hoverOffset: 6 }],
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '72%',
+        responsive: true, maintainAspectRatio: false, cutout: '72%',
         plugins: {
           legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 16, boxWidth: 12 } },
           tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed} MB` } },
@@ -150,42 +103,76 @@ export class MetricsDashboardComponent implements OnInit, OnDestroy {
       },
     });
 
-    // Sincronizar por si los datos ya llegaron antes del primer render
-    this.syncCharts(this.svc.errorRate(), this.svc.topEndpoints(), this.svc.memory());
+    // 3. CPU del proceso (%)
+    this.cpuChart = new Chart(this.cpuCanvasRef.nativeElement, {
+      type: 'line',
+      data: { labels: [], datasets: [] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ` CPU: ${(ctx.parsed.y as number).toFixed(2)} %` } },
+        },
+        scales: {
+          x: { ticks: { color: '#94a3b8', maxTicksLimit: 10 }, grid: { color: 'rgba(148,163,184,0.12)' } },
+          y: {
+            min: 0, max: 100,
+            ticks: { color: '#94a3b8', callback: v => `${v}%` },
+            grid: { color: 'rgba(148,163,184,0.12)' },
+            title: { display: true, text: 'CPU %', color: '#94a3b8' },
+          },
+        },
+      },
+    });
+
+    // 4. Latencia media HTTP (ms)
+    this.latencyChart = new Chart(this.latencyCanvasRef.nativeElement, {
+      type: 'line',
+      data: { labels: [], datasets: [] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ` Latencia: ${(ctx.parsed.y as number).toFixed(1)} ms` } },
+        },
+        scales: {
+          x: { ticks: { color: '#94a3b8', maxTicksLimit: 10 }, grid: { color: 'rgba(148,163,184,0.12)' } },
+          y: {
+            min: 0,
+            ticks: { color: '#94a3b8', callback: v => `${v} ms` },
+            grid: { color: 'rgba(148,163,184,0.12)' },
+            title: { display: true, text: 'ms', color: '#94a3b8' },
+          },
+        },
+      },
+    });
+
+    this.syncCharts();
   }
 
-  // ── Sincronizar datos → charts ────────────────────────────────────────────
+  // ── Sincronización señales → charts ──────────────────────────────────────
 
-  private syncCharts(
-    errData  = this.svc.errorRate(),
-    epData   = this.svc.topEndpoints(),
-    memData  = this.svc.memory(),
-  ): void {
-    if (errData && this.errorRateChart) {
-      this.errorRateChart.data.labels   = errData.labels;
-      this.errorRateChart.data.datasets = errData.datasets.map(d => ({
-        ...d,
-        tension: 0.35,
-        fill: true,
-        pointRadius: 0,
-        pointHoverRadius: 4,
-      }));
-      this.errorRateChart.update('none');
-    }
+  private syncCharts(): void {
+    this.syncLine(this.trafficChart, this.svc.httpTraffic());
+    this.syncLine(this.cpuChart,     this.svc.cpuUsage());
+    this.syncLine(this.latencyChart, this.svc.httpLatency());
 
-    if (epData && this.endpointsChart) {
-      this.endpointsChart.data.labels           = epData.labels;
-      this.endpointsChart.data.datasets[0].data = epData.data;
-      this.endpointsChart.update('none');
-    }
-
-    if (memData && this.memoryChart) {
-      this.memoryChart.data.datasets[0].data = [
-        memData.usedMB,
-        Math.round(memData.freeBytes / 1024 / 1024),
-      ];
+    const mem = this.svc.memory();
+    if (mem && this.memoryChart) {
+      this.memoryChart.data.datasets[0].data = [mem.usedMB, Math.round(mem.freeBytes / 1024 / 1024)];
       this.memoryChart.update('none');
     }
+  }
+
+  private syncLine(chart: Chart | undefined, data: TimeSeries | null): void {
+    if (!chart || !data) return;
+    chart.data.labels = data.labels;
+    chart.data.datasets = data.datasets.map(d => ({
+      ...d, tension: 0.35, fill: true, pointRadius: 0, pointHoverRadius: 4,
+    }));
+    chart.update('none');
   }
 
   get memStats() { return this.svc.memory(); }

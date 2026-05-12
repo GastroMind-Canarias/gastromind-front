@@ -114,16 +114,22 @@
               (click)="filterMode.set('category')"
             >Por categoría</button>
             @if (filterMode() === 'category') {
-              <input
-                class="category-input"
-                type="text"
-                placeholder="ID de categoría"
-                [value]="categoryId()"
-                (input)="categoryId.set($any($event.target).value)"
-                (keydown.enter)="applyCategory()"
-                aria-label="ID de categoría"
-              />
-              <button class="btn btn--secondary btn--sm" (click)="applyCategory()">Filtrar</button>
+              @if (categoriesSvc.isLoading()) {
+                <span class="form-hint">Cargando categorías…</span>
+              } @else {
+                <select
+                  class="category-select"
+                  [value]="categoryId()"
+                  (change)="categoryId.set($any($event.target).value)"
+                  aria-label="Seleccionar categoría"
+                >
+                  <option value="">Selecciona una categoría</option>
+                  @for (cat of categoriesSvc.categories(); track cat.id) {
+                    <option [value]="cat.id">{{ cat.name }}</option>
+                  }
+                </select>
+                <button class="btn btn--secondary btn--sm" (click)="applyCategory()" [disabled]="!categoryId()">Filtrar</button>
+              }
             }
           </div>
         </div>
@@ -160,7 +166,7 @@
             <table class="items-table" role="grid">
               <thead>
                 <tr>
-                  <th scope="col">Producto ID</th>
+                  <th scope="col">Producto</th>
                   <th scope="col">Cantidad</th>
                   <th scope="col">Caducidad</th>
                   <th scope="col">Estado</th>
@@ -170,7 +176,7 @@
               <tbody>
                 @for (item of svc.items(); track item.id) {
                   <tr class="items-table__row" [class.items-table__row--busy]="isBusy(item.id)">
-                    <td class="mono-sm">{{ item.productId }}</td>
+                    <td>{{ productName(item.productId) }}</td>
                     <td>{{ item.quantity }}</td>
                     <td>
                       @if (item.expirationDate) { {{ item.expirationDate }} }
@@ -324,16 +330,26 @@
         </button>
       </header>
       <div class="modal-body">
-        <!-- Product ID -->
+        <!-- Producto -->
         <div class="form-field">
-          <label class="form-label" for="itemProductId">ID del producto</label>
-          <input
-            id="itemProductId"
-            class="input"
-            type="text"
-            placeholder="UUID del producto"
-            [(ngModel)]="itemProductId"
-          />
+          <label class="form-label" for="itemProductId">Producto</label>
+          @if (productsSvc.isLoading()) {
+            <p class="form-hint">Cargando productos…</p>
+          } @else if (productsSvc.products().length === 0) {
+            <p class="form-hint form-hint--warn">No hay productos disponibles.</p>
+          } @else {
+            <select
+              id="itemProductId"
+              class="select"
+              [(ngModel)]="itemProductId"
+              aria-label="Seleccionar producto"
+            >
+              <option value="">Selecciona un producto</option>
+              @for (p of productsSvc.products(); track p.id) {
+                <option [value]="p.id">{{ p.name }}</option>
+              }
+            </select>
+          }
         </div>
         <!-- Quantity & Expiration -->
         <div class="form-row">
