@@ -307,9 +307,125 @@
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ── Hero info ── */
+.detail-hero__info { flex: 1; min-width: 0; }
+.detail-hero__badges {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;
+}
+
+/* ── Difficulty badge ── */
+.difficulty-badge {
+  display: inline-block; padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs); font-weight: 600; white-space: nowrap;
+}
+.difficulty-badge--easy   { background: color-mix(in srgb, #16a34a 12%, transparent); color: #15803d; }
+.difficulty-badge--medium { background: color-mix(in srgb, #d97706 12%, transparent); color: #b45309; }
+.difficulty-badge--hard   { background: color-mix(in srgb, #dc2626 12%, transparent); color: #b91c1c; }
+
+/* ── Appliance & time badges ── */
+.appliance-badge {
+  display: inline-block; padding: 2px 10px;
+  border-radius: var(--radius-pill); font-size: var(--fs-xs); font-weight: 600;
+  background: color-mix(in srgb, var(--color-primary-600) 10%, transparent);
+  color: var(--color-primary-700); white-space: nowrap;
+}
+
+.time-badge {
+  display: inline-block; padding: 2px 10px;
+  border-radius: var(--radius-pill); font-size: var(--fs-xs); font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: color-mix(in srgb, var(--color-text-muted) 10%, transparent);
+  color: var(--color-text-muted);
+}
+
+.user-badge {
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px;
+  border-radius: var(--radius-pill); font-size: var(--fs-xs); font-weight: 600;
+  background: var(--color-primary-50); color: var(--color-primary-700);
+}
+
+/* ── Edit hero button ── */
+.btn-edit-hero {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 16px; border-radius: var(--radius-pill);
+  background: var(--color-primary-500); color: #fff;
+  font-size: var(--fs-sm); font-weight: 600; cursor: pointer;
+  transition: opacity var(--t-fast), transform var(--t-fast);
+  flex-shrink: 0;
+}
+.btn-edit-hero:hover  { opacity: 0.88; }
+.btn-edit-hero:active { transform: scale(.97); }
+
+/* ── Instructions ── */
+.section-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: var(--fs-base); font-weight: 700; color: var(--color-text);
+  margin: 0 0 14px;
+}
+
+.instructions-section, .ingredients-section { display: flex; flex-direction: column; }
+
+.instructions-list {
+  margin: 0; padding: 0 0 0 20px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+.instruction-step {
+  font-size: var(--fs-sm); color: var(--color-text); line-height: 1.55;
+}
+
+/* ── Ingredients table ── */
+.ingredients-table {
+  width: 100%; border-collapse: collapse; font-size: var(--fs-sm);
+}
+.ingredients-table thead {
+  background: var(--color-bg); border-bottom: 1px solid var(--color-border);
+}
+.ingredients-table th {
+  padding: 10px 14px; text-align: left; font-size: var(--fs-xs);
+  font-weight: 600; color: var(--color-text-muted);
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.ingredients-table td {
+  padding: 10px 14px; color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+}
+.ingredients-table tr:last-child td { border-bottom: none; }
+
+.qty-chip {
+  display: inline-block; min-width: 30px; padding: 2px 8px;
+  border-radius: var(--radius-pill); text-align: center;
+  font-size: var(--fs-xs); font-weight: 700;
+  background: color-mix(in srgb, var(--color-primary-600) 12%, transparent);
+  color: var(--color-primary-700);
+}
+.qty-chip--available {
+  background: color-mix(in srgb, #16a34a 12%, transparent);
+  color: #15803d;
+}
+
+/* ── Modal wide ── */
+.modal-card--wide { max-width: 600px; }
+
+/* ── Modal section label ── */
+.modal-section-label {
+  margin: 4px 0 0; font-size: var(--fs-xs); font-weight: 700;
+  color: var(--color-primary-600); text-transform: uppercase; letter-spacing: 0.06em;
+}
+
+/* ── Textarea ── */
+.input--textarea {
+  resize: vertical; min-height: 100px;
+  font-family: inherit; line-height: 1.5;
+}
+
 /* ── Responsive ── */
 @media (max-width: 640px) {
   .detail-card { padding: 20px; }
   .detail-field { grid-template-columns: 1fr; }
   .form-row { flex-direction: column; }
+  .detail-hero { flex-wrap: wrap; }
+  .btn-edit-hero { width: 100%; justify-content: center; }
+  .modal-card--wide { max-width: 100%; }
 }

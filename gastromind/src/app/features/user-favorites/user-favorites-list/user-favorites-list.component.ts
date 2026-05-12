@@ -1,4 +1,4 @@
-import { Component, effect, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -6,8 +6,9 @@ import { UserFavoritesService } from '../user-favorites.service';
 import { UsersService } from '../../users/users.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
-import { UsualPurchase, CreateUsualPurchasePayload } from '../../../core/models/usual-purchases.models';
-import { SortDir } from '../../../core/models/tickets.models';
+import { UserFavorite, DIFFICULTY_OPTIONS, DIFFICULTY_LABELS } from '../../../core/models/user-favorites.models';
+import { ALL_APPLIANCES, APPLIANCE_LABELS } from '../../../core/models/households.models';
+import type { SortDir } from '../../../core/models/tickets.models';
 
 @Component({
   selector: 'app-user-favorites-list',
@@ -19,59 +20,63 @@ import { SortDir } from '../../../core/models/tickets.models';
 export class UserFavoritesListComponent implements OnInit {
   protected readonly svc      = inject(UserFavoritesService);
   protected readonly usersSvc = inject(UsersService);
-  private readonly router     = inject(Router);
-  private readonly toast      = inject(ToastService);
-  private readonly confirm    = inject(ConfirmDialogService);
+  private   readonly router   = inject(Router);
+  private   readonly toast    = inject(ToastService);
+  private   readonly confirm  = inject(ConfirmDialogService);
+
+  readonly allAppliances    = ALL_APPLIANCES;
+  readonly applianceLabels  = APPLIANCE_LABELS;
+  readonly difficultyOptions = DIFFICULTY_OPTIONS;
+  readonly difficultyLabels  = DIFFICULTY_LABELS;
 
   /* ── Search / sort ── */
   readonly searchQuery = signal('');
-  readonly sortDir     = signal<SortDir>('desc');
+  readonly sortDir     = signal<SortDir>('asc');
 
   /* ── Computed view ── */
-  readonly displayPurchases = computed(() => {
-    const query      = this.searchQuery().trim().toLowerCase();
-    const users      = this.usersSvc.users();
-    const productMap = this.svc.productMap();
-    const dir        = this.sortDir();
+  readonly displayFavorites = computed(() => {
+    const query = this.searchQuery().trim().toLowerCase();
+    const users = this.usersSvc.users();
+    const dir   = this.sortDir();
 
-    let result = this.svc.purchases().map(p => ({
-      purchase:    p,
-      userName:    users.find(u => u.id === p.user_id)?.name ?? p.user_id.slice(0, 8) + '…',
-      productName: productMap[p.product_id] ?? p.product_id.slice(0, 8) + '…',
+    let result = this.svc.favorites().map(fav => ({
+      fav,
+      userName: users.find(u => u.id === fav.user_id)?.name ?? fav.user_id.slice(0, 8) + '…',
     }));
 
     if (query) {
       result = result.filter(r =>
         r.userName.toLowerCase().includes(query) ||
-        r.productName.toLowerCase().includes(query) ||
-        r.purchase.product_id.toLowerCase().includes(query)
+        r.fav.recipe.title.toLowerCase().includes(query) ||
+        r.fav.recipe.appliance_needed.toLowerCase().includes(query) ||
+        r.fav.recipe.difficulty.toLowerCase().includes(query)
       );
     }
 
     result.sort((a, b) => {
-      const diff = a.purchase.target_quantity - b.purchase.target_quantity;
-      return dir === 'asc' ? diff : -diff;
+      const cmp = a.fav.recipe.title.localeCompare(b.fav.recipe.title, 'es');
+      return dir === 'asc' ? cmp : -cmp;
     });
 
     return result;
   });
 
-  constructor() {
-    effect(() => {
-      if (this.svc.purchases().length) this.svc.loadProducts();
-    });
-  }
-
   /* ── Modal ── */
-  readonly showModal = signal(false);
-  readonly modalMode = signal<'create' | 'edit'>('create');
-  readonly editingId = signal<string | null>(null);
-  readonly isSaving  = signal(false);
+  readonly showModal      = signal(false);
+  readonly modalMode      = signal<'create' | 'edit'>('create');
+  readonly editingId      = signal<string | null>(null);
+  readonly editingRecipeId = signal<string | null>(null);
+  readonly isSaving       = signal(false);
 
   /* ── Form ── */
-  formUserId         = '';
-  formProductId      = '';
-  formTargetQuantity = 1;
+  formUserId          = '';
+  formTitle           = '';
+  formInstructions    = '';
+  formServings        = 1;
+  formPrepTime        = 30;
+  formAppliance       = 'HORNO';
+  formDifficulty      = 'EASY';
+  formCreatedAt       = new Date().toISOString().slice(0, 10);
 
   ngOnInit(): void {
     this.svc.loadAll();
@@ -86,6 +91,14 @@ export class UserFavoritesListComponent implements OnInit {
     return id.slice(0, 8) + '…';
   }
 
+  diffLabel(val: string): string {
+    return this.difficultyLabels[val] ?? val;
+  }
+
+  appLabel(val: string): string {
+    return this.applianceLabels[val as keyof typeof this.applianceLabels] ?? val;
+  }
+
   toggleSort(): void {
     this.sortDir.update(d => d === 'asc' ? 'desc' : 'asc');
   }
@@ -94,73 +107,106 @@ export class UserFavoritesListComponent implements OnInit {
   openCreate(): void {
     this.modalMode.set('create');
     this.editingId.set(null);
-    this.formUserId         = '';
-    this.formProductId      = '';
-    this.formTargetQuantity = 1;
+    this.editingRecipeId.set(null);
+    this.formUserId       = '';
+    this.formTitle        = '';
+    this.formInstructions = '';
+    this.formServings     = 1;
+    this.formPrepTime     = 30;
+    this.formAppliance    = 'HORNO';
+    this.formDifficulty   = 'EASY';
+    this.formCreatedAt    = new Date().toISOString().slice(0, 10);
     this.showModal.set(true);
   }
 
-  openEdit(event: Event, p: UsualPurchase): void {
+  openEdit(event: Event, fav: UserFavorite): void {
     event.stopPropagation();
     this.modalMode.set('edit');
-    this.editingId.set(p.id);
-    this.formUserId         = p.user_id;
-    this.formProductId      = p.product_id;
-    this.formTargetQuantity = p.target_quantity;
+    this.editingId.set(fav.id);
+    this.editingRecipeId.set(fav.recipe.id);
+    this.formUserId       = fav.user_id;
+    this.formTitle        = fav.recipe.title;
+    this.formInstructions = fav.recipe.instructions;
+    this.formServings     = fav.recipe.servings;
+    this.formPrepTime     = fav.recipe.prep_time;
+    this.formAppliance    = fav.recipe.appliance_needed;
+    this.formDifficulty   = fav.recipe.difficulty;
+    this.formCreatedAt    = fav.recipe.created_at;
     this.showModal.set(true);
   }
 
   closeModal(): void { this.showModal.set(false); }
 
-  buildPayload(): CreateUsualPurchasePayload {
-    return {
-      user_id:         this.formUserId,
-      product_id:      this.formProductId,
-      target_quantity: this.formTargetQuantity,
-    };
+  get isFormValid(): boolean {
+    return !!(
+      this.formUserId &&
+      this.formTitle.trim() &&
+      this.formInstructions.trim() &&
+      this.formServings > 0 &&
+      this.formPrepTime > 0
+    );
   }
 
   onSave(): void {
-    if (!this.formUserId || !this.formProductId || this.formTargetQuantity <= 0) return;
+    if (!this.isFormValid) return;
     this.isSaving.set(true);
 
-    const payload = this.buildPayload();
+    const recipePayload = {
+      title:            this.formTitle.trim(),
+      instructions:     this.formInstructions.trim(),
+      servings:         this.formServings,
+      prep_time:        this.formPrepTime,
+      appliance_needed: this.formAppliance,
+      difficulty:       this.formDifficulty,
+      created_at:       this.formCreatedAt,
+    };
 
     if (this.modalMode() === 'create') {
-      this.svc.create(payload).subscribe({
+      this.svc.createWithRecipe(recipePayload, this.formUserId).subscribe({
         next: () => {
-          this.toast.success('Compra habitual creada correctamente.');
+          this.toast.success('Favorito creado correctamente.');
           this.svc.loadAll();
           this.closeModal();
           this.isSaving.set(false);
         },
-        error: () => { this.toast.error('No se pudo crear la compra habitual.'); this.isSaving.set(false); },
+        error: () => {
+          this.toast.error('No se pudo crear el favorito.');
+          this.isSaving.set(false);
+        },
       });
     } else {
-      this.svc.update(this.editingId()!, payload).subscribe({
+      this.svc.updateWithRecipe(
+        this.editingId()!,
+        this.editingRecipeId()!,
+        recipePayload,
+        this.formUserId,
+      ).subscribe({
         next: () => {
-          this.toast.success('Compra habitual actualizada correctamente.');
+          this.toast.success('Favorito actualizado correctamente.');
           this.svc.loadAll();
           this.closeModal();
           this.isSaving.set(false);
         },
-        error: () => { this.toast.error('No se pudo actualizar la compra habitual.'); this.isSaving.set(false); },
+        error: () => {
+          this.toast.error('No se pudo actualizar el favorito.');
+          this.isSaving.set(false);
+        },
       });
     }
   }
 
-  async onDelete(event: Event, p: UsualPurchase): Promise<void> {
+  async onDelete(event: Event, fav: UserFavorite): Promise<void> {
     event.stopPropagation();
     const confirmed = await this.confirm.confirm({
-      title:      '¿Eliminar compra habitual?',
-      message:    `Vas a eliminar la compra habitual con cantidad objetivo ${p.target_quantity}. ¿Deseas continuar?`,
-      entityName: p.id,
+      title:      '¿Eliminar favorito?',
+      message:    `Vas a eliminar "${fav.recipe.title}" de los favoritos. Esta acción no se puede deshacer.`,
+      entityName: fav.recipe.title,
     });
     if (!confirmed) return;
 
-    this.svc.delete(p.id).subscribe({
-      next:  () => { this.toast.success('Compra habitual eliminada correctamente.'); this.svc.loadAll(); },
-      error: () => { this.toast.error('No se pudo eliminar la compra habitual.'); },
+    this.svc.delete(fav.id).subscribe({
+      next:  () => { this.toast.success('Favorito eliminado correctamente.'); this.svc.loadAll(); },
+      error: () => { this.toast.error('No se pudo eliminar el favorito.'); },
     });
   }
 }

@@ -339,9 +339,82 @@
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ── Recipe cell ── */
+.recipe-cell { display: flex; align-items: center; gap: 10px; }
+
+.recipe-cell__icon {
+  flex: none;
+  width: 32px; height: 32px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-primary-600) 10%, transparent);
+  color: var(--color-primary-600);
+  display: grid; place-items: center;
+}
+
+.recipe-cell__title {
+  font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px;
+}
+
+/* ── Appliance badge ── */
+.appliance-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs); font-weight: 600;
+  background: color-mix(in srgb, var(--color-primary-600) 10%, transparent);
+  color: var(--color-primary-700);
+  white-space: nowrap;
+}
+
+/* ── Difficulty badge ── */
+.difficulty-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs); font-weight: 600;
+  white-space: nowrap;
+}
+.difficulty-badge--easy   { background: color-mix(in srgb, #16a34a 12%, transparent); color: #15803d; }
+.difficulty-badge--medium { background: color-mix(in srgb, #d97706 12%, transparent); color: #b45309; }
+.difficulty-badge--hard   { background: color-mix(in srgb, #dc2626 12%, transparent); color: #b91c1c; }
+
+/* ── Time badge ── */
+.time-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs); font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: color-mix(in srgb, var(--color-text-muted) 10%, transparent);
+  color: var(--color-text-muted);
+}
+
+/* ── Modal wide ── */
+.modal-card--wide { max-width: 620px; }
+
+/* ── Modal section label ── */
+.modal-section-label {
+  margin: 4px 0 0;
+  font-size: var(--fs-xs); font-weight: 700;
+  color: var(--color-primary-600);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+
+/* ── Textarea ── */
+.input--textarea {
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
 /* ── Responsive ── */
 @media (max-width: 640px) {
   .data-table th:nth-child(3),
-  .data-table td:nth-child(3) { display: none; }
+  .data-table td:nth-child(3),
+  .data-table th:nth-child(4),
+  .data-table td:nth-child(4) { display: none; }
   .form-row { flex-direction: column; }
+  .modal-card--wide { max-width: 100%; }
 }

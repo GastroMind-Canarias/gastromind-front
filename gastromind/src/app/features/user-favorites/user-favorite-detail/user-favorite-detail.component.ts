@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed, effect } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -6,7 +6,8 @@ import { UserFavoritesService } from '../user-favorites.service';
 import { UsersService } from '../../users/users.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
-import { CreateUsualPurchasePayload } from '../../../core/models/usual-purchases.models';
+import { DIFFICULTY_OPTIONS, DIFFICULTY_LABELS } from '../../../core/models/user-favorites.models';
+import { ALL_APPLIANCES, APPLIANCE_LABELS } from '../../../core/models/households.models';
 
 @Component({
   selector: 'app-user-favorite-detail',
@@ -18,40 +19,42 @@ import { CreateUsualPurchasePayload } from '../../../core/models/usual-purchases
 export class UserFavoriteDetailComponent implements OnInit {
   protected readonly svc      = inject(UserFavoritesService);
   protected readonly usersSvc = inject(UsersService);
-  private readonly route      = inject(ActivatedRoute);
-  private readonly router     = inject(Router);
-  private readonly toast      = inject(ToastService);
-  private readonly confirm    = inject(ConfirmDialogService);
+  private   readonly route    = inject(ActivatedRoute);
+  private   readonly router   = inject(Router);
+  private   readonly toast    = inject(ToastService);
+  private   readonly confirm  = inject(ConfirmDialogService);
 
-  /* ── Resolved names ── */
+  readonly allAppliances    = ALL_APPLIANCES;
+  readonly applianceLabels  = APPLIANCE_LABELS;
+  readonly difficultyOptions = DIFFICULTY_OPTIONS;
+  readonly difficultyLabels  = DIFFICULTY_LABELS;
+
+  /* ── Resolved user ── */
   readonly resolvedUser = computed(() => {
-    const p = this.svc.selectedPurchase();
-    if (!p) return null;
-    return this.usersSvc.users().find(u => u.id === p.user_id) ?? null;
+    const fav = this.svc.selectedFavorite();
+    if (!fav) return null;
+    return this.usersSvc.users().find(u => u.id === fav.user_id) ?? null;
   });
 
   /* ── Edit modal ── */
   readonly showModal = signal(false);
   readonly isSaving  = signal(false);
 
-  formUserId         = '';
-  formProductId      = '';
-  formTargetQuantity = 1;
+  formUserId        = '';
+  formTitle         = '';
+  formInstructions  = '';
+  formServings      = 1;
+  formPrepTime      = 30;
+  formAppliance     = 'HORNO';
+  formDifficulty    = 'EASY';
+  formCreatedAt     = '';
 
-  constructor() {
-    // When the purchase loads, also fetch product details
-    effect(() => {
-      const p = this.svc.selectedPurchase();
-      if (p?.product_id) this.svc.loadProduct(p.product_id);
-    });
-  }
-
-  private get purchaseId(): string {
+  private get favoriteId(): string {
     return this.route.snapshot.paramMap.get('id')!;
   }
 
   ngOnInit(): void {
-    this.svc.loadById(this.purchaseId);
+    this.svc.loadById(this.favoriteId);
     this.usersSvc.loadAll();
   }
 
@@ -59,58 +62,91 @@ export class UserFavoriteDetailComponent implements OnInit {
 
   shortId(id: string): string { return id.slice(0, 8) + '…'; }
 
+  diffLabel(val: string): string {
+    return this.difficultyLabels[val] ?? val;
+  }
+
+  appLabel(val: string): string {
+    return this.applianceLabels[val as keyof typeof this.applianceLabels] ?? val;
+  }
+
   /* ── Edit modal ── */
   openEdit(): void {
-    const p = this.svc.selectedPurchase()!;
-    this.formUserId         = p.user_id;
-    this.formProductId      = p.product_id;
-    this.formTargetQuantity = p.target_quantity;
+    const fav = this.svc.selectedFavorite()!;
+    this.formUserId       = fav.user_id;
+    this.formTitle        = fav.recipe.title;
+    this.formInstructions = fav.recipe.instructions;
+    this.formServings     = fav.recipe.servings;
+    this.formPrepTime     = fav.recipe.prep_time;
+    this.formAppliance    = fav.recipe.appliance_needed;
+    this.formDifficulty   = fav.recipe.difficulty;
+    this.formCreatedAt    = fav.recipe.created_at;
     this.showModal.set(true);
   }
 
   closeModal(): void { this.showModal.set(false); }
 
+  get isFormValid(): boolean {
+    return !!(
+      this.formUserId &&
+      this.formTitle.trim() &&
+      this.formInstructions.trim() &&
+      this.formServings > 0 &&
+      this.formPrepTime > 0
+    );
+  }
+
   onSave(): void {
-    if (!this.formUserId || !this.formProductId || this.formTargetQuantity <= 0) return;
+    if (!this.isFormValid) return;
+    const fav = this.svc.selectedFavorite()!;
     this.isSaving.set(true);
 
-    const payload: CreateUsualPurchasePayload = {
-      user_id:         this.formUserId,
-      product_id:      this.formProductId,
-      target_quantity: this.formTargetQuantity,
+    const recipePayload = {
+      title:            this.formTitle.trim(),
+      instructions:     this.formInstructions.trim(),
+      servings:         this.formServings,
+      prep_time:        this.formPrepTime,
+      appliance_needed: this.formAppliance,
+      difficulty:       this.formDifficulty,
+      created_at:       this.formCreatedAt,
     };
 
-    this.svc.update(this.purchaseId, payload).subscribe({
+    this.svc.updateWithRecipe(
+      this.favoriteId,
+      fav.recipe.id,
+      recipePayload,
+      this.formUserId,
+    ).subscribe({
       next: () => {
-        this.toast.success('Compra habitual actualizada correctamente.');
-        this.svc.loadById(this.purchaseId);
+        this.toast.success('Favorito actualizado correctamente.');
+        this.svc.loadById(this.favoriteId);
         this.closeModal();
         this.isSaving.set(false);
       },
       error: () => {
-        this.toast.error('No se pudo actualizar la compra habitual.');
+        this.toast.error('No se pudo actualizar el favorito.');
         this.isSaving.set(false);
       },
     });
   }
 
   async onDelete(): Promise<void> {
-    const p = this.svc.selectedPurchase();
-    if (!p) return;
+    const fav = this.svc.selectedFavorite();
+    if (!fav) return;
 
     const confirmed = await this.confirm.confirm({
-      title:      '¿Eliminar compra habitual?',
-      message:    `Vas a eliminar esta compra habitual con cantidad objetivo ${p.target_quantity}. ¿Deseas continuar?`,
-      entityName: p.id,
+      title:      '¿Eliminar favorito?',
+      message:    `Vas a eliminar "${fav.recipe.title}" de los favoritos. Esta acción no se puede deshacer.`,
+      entityName: fav.recipe.title,
     });
     if (!confirmed) return;
 
-    this.svc.delete(p.id).subscribe({
+    this.svc.delete(fav.id).subscribe({
       next: () => {
-        this.toast.success('Compra habitual eliminada correctamente.');
+        this.toast.success('Favorito eliminado correctamente.');
         this.router.navigate(['/user-favorites']);
       },
-      error: () => this.toast.error('No se pudo eliminar la compra habitual.'),
+      error: () => this.toast.error('No se pudo eliminar el favorito.'),
     });
   }
 }

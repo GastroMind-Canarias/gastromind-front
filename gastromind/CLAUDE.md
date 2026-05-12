@@ -155,6 +155,15 @@ PUT    /api/v1/fridge-items/:id                             (update stock)
 DELETE /api/v1/fridge-items/:id
 PUT    /api/v1/fridge-items/:id/mark-consumed
 PUT    /api/v1/fridge-items/:id/consume                     { quantity }
+
+GET    /api/v1/user-favorites
+GET    /api/v1/user-favorites/:id
+POST   /api/v1/user-favorites                               { user_id, recipe_id }
+PUT    /api/v1/user-favorites/:id                           { user_id, recipe_id }
+DELETE /api/v1/user-favorites/:id
+
+POST   /api/v1/recipes                                      { title, instructions, servings, prep_time, appliance_needed, difficulty, created_at }
+PUT    /api/v1/recipes/:id
 ```
 
 ### Dependency Injection
@@ -174,4 +183,12 @@ New features follow this pattern:
 - `features/<name>/<name>.service.ts` — Signals + HttpClient, no class-level state
 - Register in `app.routes.ts` with `loadChildren` (multi-route) or `loadComponent` (single component)
 
-Both `/fridges` and `/tickets` are fully implemented.
+All features (`/fridges`, `/tickets`, `/users`, `/households`, `/units`, `/usual-purchases`, `/user-favorites`) are fully implemented.
+
+### User-Favorites Create Flow
+
+Creating a user-favorite requires **two sequential API calls**:
+1. `POST /api/v1/recipes` with recipe fields → returns `Recipe` with `id`
+2. `POST /api/v1/user-favorites` with `{ user_id, recipe_id }` (using id from step 1)
+
+`UserFavoritesService.createWithRecipe()` handles this via `switchMap`. Edit follows the same pattern with `PUT` on both endpoints.
