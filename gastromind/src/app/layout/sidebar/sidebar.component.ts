@@ -23,17 +23,18 @@ export class SidebarComponent {
   readonly mobileOpen = signal(false);
 
   readonly navItems = signal<NavItem[]>([
-    { label: 'Dashboard',        route: '/dashboard',        icon: 'dashboard' },
-    { label: 'Users',            route: '/users',            icon: 'users'     },
-    { label: 'Households',       route: '/households',       icon: 'home'      },
-    { label: 'Fridges',          route: '/fridges',          icon: 'fridge'    },
-    { label: 'Tickets',          route: '/tickets',          icon: 'ticket'    },
-    { label: 'Units',            route: '/units',            icon: 'units'     },
-    { label: 'Usual Purchases',  route: '/usual-purchases',  icon: 'shopping'  },
-    { label: 'User Favorites',   route: '/user-favorites',   icon: 'favorites' },
-    { label: 'Categorías',       route: '/categories',       icon: 'category'  },
-    { label: 'Tiendas',          route: '/stores',           icon: 'store'     },
-    { label: 'Productos',        route: '/products',         icon: 'product'   },
+    { label: 'Dashboard',          route: '/dashboard',       icon: 'dashboard' },
+    { label: 'Usuarios',           route: '/users',           icon: 'users'     },
+    { label: 'Hogares',            route: '/households',      icon: 'home'      },
+    { label: 'Neveras',            route: '/fridges',         icon: 'fridge'    },
+    { label: 'Tickets',            route: '/tickets',         icon: 'ticket'    },
+    { label: 'Unidades',           route: '/units',           icon: 'units'     },
+    { label: 'Compras habituales', route: '/usual-purchases', icon: 'shopping'  },
+    { label: 'Favoritos',          route: '/user-favorites',  icon: 'favorites' },
+    { label: 'Categorías',         route: '/categories',      icon: 'category'  },
+    { label: 'Tiendas',            route: '/stores',          icon: 'store'     },
+    { label: 'Productos',          route: '/products',        icon: 'product'   },
+    { label: 'Métricas',           route: '/metrics',         icon: 'metrics'   },
   ]);
 
   readonly asideClass = computed(() => ({

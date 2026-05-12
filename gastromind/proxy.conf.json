@@ -4,5 +4,12 @@
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug"
+  },
+  "/prometheus": {
+    "target": "http://100.97.191.102:9090",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": { "^/prometheus": "" },
+    "logLevel": "debug"
   }
 }

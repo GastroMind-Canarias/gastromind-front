@@ -189,12 +189,22 @@
         <div class="form-section-title">Datos del ticket</div>
         <div class="form-row">
           <div class="form-field">
-            <label class="form-label" for="tUserId">User ID</label>
-            <input id="tUserId" class="input" type="text" placeholder="UUID del usuario" [(ngModel)]="formUserId" />
+            <label class="form-label" for="tUserId">Usuario</label>
+            <select id="tUserId" class="select" [(ngModel)]="formUserId">
+              <option value="">— Seleccionar usuario —</option>
+              @for (u of usersSvc.users(); track u.id) {
+                <option [value]="u.id">{{ u.name }}</option>
+              }
+            </select>
           </div>
           <div class="form-field">
-            <label class="form-label" for="tStoreId">Store ID</label>
-            <input id="tStoreId" class="input" type="text" placeholder="UUID de la tienda" [(ngModel)]="formStoreId" />
+            <label class="form-label" for="tStoreId">Tienda</label>
+            <select id="tStoreId" class="select" [(ngModel)]="formStoreId">
+              <option value="">— Seleccionar tienda —</option>
+              @for (s of storesSvc.stores(); track s.id) {
+                <option [value]="s.id">{{ s.name }}</option>
+              }
+            </select>
           </div>
         </div>
 
@@ -236,12 +246,19 @@
 
               <div class="form-row">
                 <div class="form-field">
-                  <label class="form-label" [for]="'iPid'+i">Product ID</label>
-                  <input [id]="'iPid'+i" class="input input--sm" type="text" placeholder="UUID" [(ngModel)]="item.product_id" [name]="'pid_'+i" />
+                  <label class="form-label" [for]="'iPid'+i">Producto</label>
+                  <select [id]="'iPid'+i" class="select select--sm" [name]="'pid_'+i"
+                    [ngModel]="item.product_id"
+                    (ngModelChange)="onProductSelected(item, $event)">
+                    <option value="">— Seleccionar producto —</option>
+                    @for (p of productsSvc.products(); track p.id) {
+                      <option [value]="p.id">{{ p.name }}</option>
+                    }
+                  </select>
                 </div>
                 <div class="form-field">
-                  <label class="form-label" [for]="'iName'+i">Nombre</label>
-                  <input [id]="'iName'+i" class="input input--sm" type="text" placeholder="Nombre producto" [(ngModel)]="item.line_product_name" [name]="'pname_'+i" />
+                  <label class="form-label" [for]="'iName'+i">Nombre en línea</label>
+                  <input [id]="'iName'+i" class="input input--sm" type="text" placeholder="Se rellena automáticamente" [(ngModel)]="item.line_product_name" [name]="'pname_'+i" />
                 </div>
               </div>
 
@@ -255,8 +272,13 @@
                   <input [id]="'iPrice'+i" class="input input--sm" type="number" min="0" step="0.01" [(ngModel)]="item.price_unit" [name]="'price_'+i" />
                 </div>
                 <div class="form-field">
-                  <label class="form-label" [for]="'iUnit'+i">Unit ID</label>
-                  <input [id]="'iUnit'+i" class="input input--sm" type="text" placeholder="UUID" [(ngModel)]="item.unit_id" [name]="'uid_'+i" />
+                  <label class="form-label" [for]="'iUnit'+i">Unidad</label>
+                  <select [id]="'iUnit'+i" class="select select--sm" [(ngModel)]="item.unit_id" [name]="'uid_'+i">
+                    <option value="">— Unidad —</option>
+                    @for (u of unitsSvc.units(); track u.id) {
+                      <option [value]="u.id">{{ u.name }}</option>
+                    }
+                  </select>
                 </div>
                 <div class="form-field">
                   <label class="form-label" [for]="'iStatus'+i">Estado</label>

@@ -21,6 +21,8 @@ export class DashboardService {
     totalUnits:          0,
     totalFavorites:      0,
     totalCategories:     0,
+    totalStores:         0,
+    totalProducts:       0,
   });
 
   readonly stats = this._stats.asReadonly();
@@ -29,7 +31,8 @@ export class DashboardService {
     const s = this._stats();
     return s.totalUsers > 0 || s.totalHouseholds > 0 || s.totalTickets > 0
         || s.totalFridges > 0 || s.totalUsualPurchases > 0 || s.totalUnits > 0
-        || s.totalFavorites > 0 || s.totalCategories > 0;
+        || s.totalFavorites > 0 || s.totalCategories > 0
+        || s.totalStores > 0 || s.totalProducts > 0;
   });
 
   loadStats(): void {
@@ -45,8 +48,10 @@ export class DashboardService {
       units:           this.http.get<unknown[]>(`${BASE_URL}/units`),
       favorites:       this.http.get<unknown[]>(`${BASE_URL}/user-favorites`),
       categories:      this.http.get<unknown[]>(`${BASE_URL}/categories`),
+      stores:          this.http.get<unknown[]>(`${BASE_URL}/stores`),
+      products:        this.http.get<unknown[]>(`${BASE_URL}/products`),
     }).subscribe({
-      next: ({ users, households, tickets, fridges, usualPurchases, units, favorites, categories }) => {
+      next: ({ users, households, tickets, fridges, usualPurchases, units, favorites, categories, stores, products }) => {
         this._stats.set({
           totalUsers:          Array.isArray(users)          ? users.length          : 0,
           totalHouseholds:     Array.isArray(households)     ? households.length     : 0,
@@ -56,6 +61,8 @@ export class DashboardService {
           totalUnits:          Array.isArray(units)          ? units.length          : 0,
           totalFavorites:      Array.isArray(favorites)      ? favorites.length      : 0,
           totalCategories:     Array.isArray(categories)     ? categories.length     : 0,
+          totalStores:         Array.isArray(stores)         ? stores.length         : 0,
+          totalProducts:       Array.isArray(products)       ? products.length       : 0,
         });
         this.isLoading.set(false);
       },

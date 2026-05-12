@@ -16,8 +16,6 @@ export class DashboardComponent implements OnInit {
   protected readonly svc = inject(DashboardService);
   /** Perfil del usuario logueado (viene del store, ya hidratado por LayoutComponent). */
   protected readonly user = currentUser;
-  /** Fecha de hoy para el encabezado. */
-  protected readonly today = new Date();
 
   ngOnInit(): void {
     this.svc.loadStats();

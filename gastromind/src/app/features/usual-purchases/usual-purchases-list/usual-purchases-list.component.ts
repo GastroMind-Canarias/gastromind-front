@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UsualPurchasesService } from '../usual-purchases.service';
 import { UsersService } from '../../users/users.service';
+import { ProductsService } from '../../products/products.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
 import { UsualPurchase, CreateUsualPurchasePayload } from '../../../core/models/usual-purchases.models';
@@ -17,9 +18,10 @@ import { SortDir } from '../../../core/models/tickets.models';
   styleUrl: './usual-purchases-list.component.css',
 })
 export class UsualPurchasesListComponent implements OnInit {
-  protected readonly svc      = inject(UsualPurchasesService);
-  protected readonly usersSvc = inject(UsersService);
-  private readonly router     = inject(Router);
+  protected readonly svc         = inject(UsualPurchasesService);
+  protected readonly usersSvc    = inject(UsersService);
+  protected readonly productsSvc = inject(ProductsService);
+  private readonly router        = inject(Router);
   private readonly toast      = inject(ToastService);
   private readonly confirm    = inject(ConfirmDialogService);
 
@@ -74,6 +76,7 @@ export class UsualPurchasesListComponent implements OnInit {
   ngOnInit(): void {
     this.svc.loadAll();
     this.usersSvc.loadAll();
+    this.productsSvc.loadAll();
   }
 
   goToDetail(id: string): void {

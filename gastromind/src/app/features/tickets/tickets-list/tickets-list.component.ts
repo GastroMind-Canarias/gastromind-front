@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TicketsService } from '../tickets.service';
 import { UsersService } from '../../users/users.service';
+import { StoresService } from '../../stores/stores.service';
+import { ProductsService } from '../../products/products.service';
+import { UnitsService } from '../../units/units.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
 import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
 import {
@@ -32,11 +35,14 @@ const BLANK_ITEM = (): CreateTicketItemPayload => ({
   styleUrl: './tickets-list.component.css',
 })
 export class TicketsListComponent implements OnInit {
-  protected readonly svc      = inject(TicketsService);
-  protected readonly usersSvc = inject(UsersService);
-  private readonly router     = inject(Router);
-  private readonly toast      = inject(ToastService);
-  private readonly confirm    = inject(ConfirmDialogService);
+  protected readonly svc         = inject(TicketsService);
+  protected readonly usersSvc    = inject(UsersService);
+  protected readonly storesSvc   = inject(StoresService);
+  protected readonly productsSvc = inject(ProductsService);
+  protected readonly unitsSvc    = inject(UnitsService);
+  private readonly router        = inject(Router);
+  private readonly toast         = inject(ToastService);
+  private readonly confirm       = inject(ConfirmDialogService);
 
   /* ── Search / sort ── */
   readonly searchQuery  = signal('');
@@ -83,6 +89,16 @@ export class TicketsListComponent implements OnInit {
   ngOnInit(): void {
     this.svc.loadAll();
     this.usersSvc.loadAll();
+    this.storesSvc.loadAll();
+    this.productsSvc.loadAll();
+    this.unitsSvc.loadAll();
+  }
+
+  /** Al seleccionar un producto en un item, auto-rellena el nombre de línea */
+  onProductSelected(item: CreateTicketItemPayload, productId: string): void {
+    item.product_id = productId;
+    const product = this.productsSvc.products().find(p => p.id === productId);
+    if (product) { item.line_product_name = product.name; }
   }
 
   goToDetail(id: string): void {

@@ -184,12 +184,22 @@
       <div class="modal-body">
         <div class="form-row">
           <div class="form-field">
-            <label class="form-label" for="pUserId">User ID</label>
-            <input id="pUserId" class="input" type="text" placeholder="UUID del usuario" [(ngModel)]="formUserId" />
+            <label class="form-label" for="pUserId">Usuario</label>
+            <select id="pUserId" class="select" [(ngModel)]="formUserId">
+              <option value="">— Seleccionar usuario —</option>
+              @for (u of usersSvc.users(); track u.id) {
+                <option [value]="u.id">{{ u.name }}</option>
+              }
+            </select>
           </div>
           <div class="form-field">
-            <label class="form-label" for="pProductId">Product ID</label>
-            <input id="pProductId" class="input" type="text" placeholder="UUID del producto" [(ngModel)]="formProductId" />
+            <label class="form-label" for="pProductId">Producto</label>
+            <select id="pProductId" class="select" [(ngModel)]="formProductId">
+              <option value="">— Seleccionar producto —</option>
+              @for (p of productsSvc.products(); track p.id) {
+                <option [value]="p.id">{{ p.name }}</option>
+              }
+            </select>
           </div>
         </div>
         <div class="form-field">
